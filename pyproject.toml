@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moderators"
+version = "0.1.0"
+description = "An open-source Python toolkit for multi-domain content moderation."
+readme = "README.md"
+requires-python = ">=3.8"
+license = "Apache-2.0"
+authors = [ { name = "Moderators Team", email = "team@example.com" } ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "huggingface-hub>=0.18.0",
+    "requests",
+    "numpy",
+    "Pillow"
+]
+
+[project.optional-dependencies]
+transformers = [
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "accelerate"
+]
+ultralytics = [
+    "ultralytics>=8.0.0"
+]
+onnx = [
+    "onnx",
+    "onnxruntime"
+]
+all = [
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "accelerate",
+    "ultralytics>=8.0.0",
+    "onnx",
+    "onnxruntime"
+]
+
+[project.scripts]
+moderators = "moderators.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
