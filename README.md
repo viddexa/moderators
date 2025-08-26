@@ -3,16 +3,17 @@
 This repository provides an extensible core skeleton for content moderation. Phase 1 includes:
 - Standard data classes (Box, PredictionResult)
 - BaseModerator flow (predict → _preprocess → _predict → _postprocess)
-- ModelHubMixin-based `Moderator` factory (reads `config.json` from HF Hub or local)
+- ModelHubMixin-based `AutoModerator` factory (reads `config.json` from HF Hub or local)
 - CLI: `moderators` (load and run inference)
 
 First integration: Transformers.
 
 ## Quick Start
-```python
-from moderators.api import Moderator
 
-moderator = Moderator.from_pretrained("org/model")  # or a local folder path
+```python
+from moderators.auto_model import AutoModerator
+
+moderator = AutoModerator.from_pretrained("org/model")  # or a local folder path
 results = moderator.predict("some input")
 print(results)
 ```
@@ -26,7 +27,7 @@ print(results)
 ```
 
 - Naming convention: the `XyzModerator` class must be defined in `moderators/integrations/xyz_moderator.py`.
-- Note: `Moderator` is a factory class; it returns the actual integration instance.
+- Note: `AutoModerator` is a factory class; it returns the actual integration instance.
 
 ## Installation (with uv)
 ```
@@ -55,7 +56,7 @@ export MODERATORS_DISABLE_AUTO_INSTALL=1
 ```
 
 ## Usage Overview
-`Moderator.from_pretrained("org/model")` dynamically loads the correct integration class based on the `"architecture"` field in `config.json`.
+`AutoModerator.from_pretrained("org/model")` dynamically loads the correct integration class based on the `"architecture"` field in `config.json`.
 
 ## Command Line (CLI)
 Run models directly from the terminal.

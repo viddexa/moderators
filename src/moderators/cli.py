@@ -2,7 +2,7 @@
 import argparse
 import json
 from dataclasses import asdict, is_dataclass
-from moderators.api import Moderator
+from moderators.auto_model import AutoModerator
 
 def _to_jsonable(obj):
     if is_dataclass(obj):
@@ -23,7 +23,7 @@ def main():
         parser.print_help()
         return 0
 
-    mod = Moderator.from_pretrained(args.model, local_files_only=args.local_files_only)
+    mod = AutoModerator.from_pretrained(args.model, local_files_only=args.local_files_only)
     if args.input:
         out = mod.predict(args.input)
         print(json.dumps([_to_jsonable(x) for x in out], ensure_ascii=False, indent=2))

@@ -14,7 +14,7 @@ if str(SRC_DIR) not in sys.path:
 def fake_transformers(monkeypatch):
     """
     Replace 'from transformers import pipeline' with a fake pipeline.
-    Allows testing Moderator.load_model flow without any network/download.
+    Allows testing AutoModerator.load_model flow without any network/download.
     """
     mod = types.ModuleType("transformers")
 

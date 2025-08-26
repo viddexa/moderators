@@ -54,11 +54,11 @@ def _infer_task(cfg: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-class Moderator(ModelHubMixin):
+class AutoModerator(ModelHubMixin):
     def __init__(self, *args, **kwargs) -> None:
         raise EnvironmentError(
-            "Moderator is a factory class and cannot be instantiated directly. "
-            "Please use the `Moderator.from_pretrained('model_id')` method."
+            "AutoModerator is a factory class and cannot be instantiated directly. "
+            "Please use the `AutoModerator.from_pretrained('model_id')` method."
         )
 
     @classmethod

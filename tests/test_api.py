@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import base64
 
-from moderators.api import Moderator
+from moderators.auto_model import AutoModerator
 from moderators.integrations.transformers_moderator import TransformersModerator
 from moderators.integrations.base import PredictionResult
 
@@ -21,7 +21,7 @@ def test_local_transformers_config_predict_success(tmp_path, fake_transformers):
         {"architecture": "TransformersModerator", "task": "text-classification"},
     )
 
-    mod = Moderator.from_pretrained(str(model_dir))
+    mod = AutoModerator.from_pretrained(str(model_dir))
     assert isinstance(mod, TransformersModerator)
 
     out = mod.predict("hello world")
@@ -35,7 +35,7 @@ def test_not_implemented_for_other_architecture(tmp_path):
     # For now, only TransformersModerator is supported
     model_dir = write_config(tmp_path, {"architecture": "OnnxModerator"})
     with pytest.raises(NotImplementedError) as ei:
-        Moderator.from_pretrained(str(model_dir))
+        AutoModerator.from_pretrained(str(model_dir))
     assert "only 'TransformersModerator' is implemented" in str(ei.value)
 
 
@@ -52,7 +52,7 @@ def test_infer_transformers_from_hf_like_config(tmp_path, fake_transformers):
         },
     )
 
-    mod = Moderator.from_pretrained(str(model_dir))
+    mod = AutoModerator.from_pretrained(str(model_dir))
     assert isinstance(mod, TransformersModerator)
 
     out = mod.predict("any input")
@@ -73,14 +73,14 @@ def test_cannot_infer_task_raises(tmp_path):
         },
     )
     with pytest.raises(ValueError) as ei:
-        Moderator.from_pretrained(str(model_dir))
+        AutoModerator.from_pretrained(str(model_dir))
     assert "Could not infer 'task'" in str(ei.value)
 
 
 def test_missing_config_json_raises(tmp_path):
     # Local folder exists but config.json is missing
     with pytest.raises(FileNotFoundError):
-        Moderator.from_pretrained(str(tmp_path))
+        AutoModerator.from_pretrained(str(tmp_path))
 
 
 def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
@@ -98,7 +98,7 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
         pytest.skip("Auto-install disabled; skipping online integration test.")
 
     model_id = "Falconsai/nsfw_image_detection"
-    mod = Moderator.from_pretrained(model_id, local_files_only=False)
+    mod = AutoModerator.from_pretrained(model_id, local_files_only=False)
     assert isinstance(mod, TransformersModerator)
 
     # Prepare a tiny 1x1 PNG (red pixel) without requiring Pillow in the test
