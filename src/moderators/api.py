@@ -1,193 +1,117 @@
+# python
+from __future__ import annotations
+
 import importlib
 import json
-from typing import Any, Dict, Optional
-# Optional dependency management
-import os
-import sys
-import subprocess
-from importlib.util import find_spec
 from pathlib import Path
+from typing import Any, Dict, Optional
 
-from huggingface_hub import hf_hub_download
-from huggingface_hub import ModelHubMixin
+try:
+    from huggingface_hub import ModelHubMixin  # do not import hf_hub_download here
+except Exception:
+    class ModelHubMixin:
+        @classmethod
+        def from_pretrained(cls, *args, **kwargs):
+            return cls._from_pretrained(*args, **kwargs)
 
-# Architecture -> optional dependencies (module names and pip packages)
-_EXTRA_DEPS: Dict[str, Dict[str, Any]] = {
-    "TransformersModerator": {
-        "modules": ["torch", "transformers", "accelerate"],
-        "pip": ["torch>=2.0.0", "transformers>=4.30.0", "accelerate"],
-        "extra": "transformers",
-    },
-    "UltralyticsModerator": {
-        "modules": ["ultralytics"],
-        "pip": ["ultralytics>=8.0.0"],
-        "extra": "ultralytics",
-    },
-    "OnnxModerator": {
-        "modules": ["onnx", "onnxruntime"],
-        "pip": ["onnx", "onnxruntime"],
-        "extra": "onnx",
-    },
-}
+def _load_config(identifier: str, *, local_files_only: bool = False) -> Dict[str, Any]:
+    p = Path(identifier)
+    if p.exists():
+        cfg_path = p / "config.json"
+        if not cfg_path.exists():
+            raise FileNotFoundError(f"config.json not found in local folder: {cfg_path}")
+        return json.loads(cfg_path.read_text())
 
-def _read_settings() -> Dict[str, Any]:
-    try:
-        p = Path.home() / ".moderators" / "settings.json"
-        if not p.exists():
-            return {}
-        return json.loads(p.read_text())
-    except Exception:
-        return {}
+    # Lazy import to avoid pulling heavy deps during module import
+    from huggingface_hub import hf_hub_download
 
-def _should_auto_install(kwargs: Dict[str, Any]) -> bool:
-    # Disable via environment variable
-    if os.getenv("MODERATORS_DISABLE_AUTO_INSTALL", "").lower() in {"1", "true", "yes"}:
-        return False
-    # Per-call override
-    if "auto_install" in kwargs:
-        return bool(kwargs["auto_install"])
-    # Read from settings (default True)
-    settings = _read_settings()
-    return bool(settings.get("autoinstall", True))
+    cfg_fp = hf_hub_download(
+        repo_id=identifier,
+        filename="config.json",
+        repo_type="model",
+        local_files_only=local_files_only,
+    )
+    return json.loads(Path(cfg_fp).read_text())
 
-def _ensure_optional_deps(architecture_name: str, *, auto_install: bool) -> None:
-    info = _EXTRA_DEPS.get(architecture_name)
-    if not info:
-        return
-    missing = [m for m in info["modules"] if find_spec(m) is None]
-    if not missing:
-        return
-    if not auto_install:
-        extra = info.get("extra")
-        raise ImportError(
-            "Missing optional dependencies: "
-            + ", ".join(missing)
-            + ". Auto-install is disabled. Manual install: "
-            + (f"pip install 'moderators[{extra}]'" if extra else "")
-            + (f" or: pip install " + " ".join(info["pip"]))
-        )
-    # Try auto-install
-    try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", *info["pip"]])
-    except Exception as e:
-        extra = info.get("extra")
-        raise ImportError(
-            "Automatic installation of optional dependencies failed. "
-            "Please install manually: "
-            + (f"pip install 'moderators[{extra}]'" if extra else "")
-            + (f" or: pip install " + " ".join(info["pip"]))
-        ) from e
+
+def _is_transformers_cfg(cfg: Dict[str, Any]) -> bool:
+    # `architectures` is not enough alone to identify a Transformers model
+    has_tf_sig = any(
+        k in cfg for k in ("transformers_version", "model_type", "id2label", "label2id")
+    )
+    has_arch_list = isinstance(cfg.get("architectures"), list)
+    return has_arch_list and has_tf_sig
+
+
+def _infer_task(cfg: Dict[str, Any]) -> Optional[str]:
+    # get general task from architectures or problem_type
+    archs = [str(a).lower() for a in cfg.get("architectures", [])]
+    if any("classification" in a for a in archs):
+        return "image-classification"
+    prob = str(cfg.get("problem_type", "")).lower()
+    if "classification" in prob:
+        return "image-classification"
+    return None
+
 
 class Moderator(ModelHubMixin):
-    """
-    User-facing factory class to load the appropriate integration based on a
-    model's configuration file hosted on the Hugging Face Hub.
-    """
-
-    _ARCH_TO_CLASS_PATH: Dict[str, str] = {
-        # architecture name in config -> fully-qualified class path
-        "TransformersModerator": "moderators.integrations.transformers_moderator.TransformersModerator",
-        "UltralyticsModerator": "moderators.integrations.ultralytics_moderator.UltralyticsModerator",
-        "OnnxModerator": "moderators.integrations.onnx_moderator.OnnxModerator",
-    }
-
-    # Known model presets for repos that do not ship a moderators-specific config
-    _MODEL_PRESETS: Dict[str, Dict[str, Any]] = {
-        # Falconsai NSFW image classification model (Transformers ViT)
-        "Falconsai/nsfw_image_detection": {
-            "architecture": "TransformersModerator",
-            "task": "image-classification",
-        },
-        # New: suko/nsfw runs with an ONNX model expecting NHWC
-        "suko/nsfw": {
-            "architecture": "OnnxModerator",
-            "task": "image-classification",
-            "input_layout": "NHWC",
-            "input_size": [224, 224],
-        },
-    }
+    def __init__(self, *args, **kwargs) -> None:
+        raise EnvironmentError(
+            "Moderator is a factory class and cannot be instantiated directly. "
+            "Please use the `Moderator.from_pretrained('model_id')` method."
+        )
 
     @classmethod
-    def from_pretrained(
+    def _from_pretrained(
         cls,
         model_id: str,
-        *,
-        revision: Optional[str] = None,
-        cache_dir: Optional[str] = None,
-        token: Optional[str] = None,
-        config_filename: str = "config.json",
+        config: Optional[dict] = None,
+        local_files_only: bool = False,
         **kwargs: Any,
-    ) -> Any:
-        """
-        Downloads the config from the Hub (or uses a preset/metadata inference), instantiates the
-        correct integration, calls its load_model(), and returns the ready instance.
-        """
-        # Try to fetch config.json from the Hub. If missing, try metadata-based inference, then presets.
-        config: Dict[str, Any] = {}
+    ):
+        cfg = dict(config or _load_config(model_id, local_files_only=local_files_only))
+
+        architecture = cfg.get("architecture")
+        if not architecture:
+            if _is_transformers_cfg(cfg):
+                cfg["architecture"] = "TransformersModerator"
+                if not cfg.get("task"):
+                    inferred = _infer_task(cfg)
+                    if inferred:
+                        cfg["task"] = inferred
+                    else:
+                        raise ValueError(
+                            "Could not infer 'task' from the Transformers config. "
+                            "Please specify 'task' in the model's config.json "
+                            "(e.g. 'image-classification')."
+                        )
+            else:
+                raise ValueError(
+                    f"Could not determine 'architecture' from config.json for model '{model_id}'. "
+                )
+
+        architecture = cfg["architecture"]
+
+        # For MVP, only TransformersModerator is implemented
+        if architecture != "TransformersModerator":
+            raise NotImplementedError(
+                f"'{architecture}' is not yet supported in this version of Moderators. "
+                "As of now, only 'TransformersModerator' is implemented."
+            )
+
+        module_name = architecture.replace("Moderator", "_moderator").lower()
+        module_path = f"moderators.integrations.{module_name}"
+
         try:
-            config_path = hf_hub_download(
-                repo_id=model_id,
-                filename=config_filename,
-                revision=revision,
-                cache_dir=cache_dir,
-                token=token,
-            )
-            with open(config_path, "r", encoding="utf-8") as f:
-                config = json.load(f)
-        except Exception:
-            # Try to infer architecture/task from model metadata
-            inferred = None
-            try:
-                from huggingface_hub import HfApi  # local import to avoid hard dep at import time
-                info = HfApi().model_info(model_id, revision=revision, token=token)
-                pipeline_tag = getattr(info, "pipeline_tag", None)
-                library_name = (getattr(info, "library_name", None) or "") or ""
-                tags = set(getattr(info, "tags", []) or [])
-                # Heuristics
-                if "transformers" in str(library_name).lower() and pipeline_tag:
-                    inferred = {"architecture": "TransformersModerator", "task": pipeline_tag}
-                elif "ultralytics" in str(library_name).lower() or "ultralytics" in {t.lower() for t in tags}:
-                    inferred = {"architecture": "UltralyticsModerator", "task": "object-detection"}
-                elif "onnx" in {t.lower() for t in tags} or "onnx" in str(library_name).lower():
-                    # Default to NHWC for many TF-exported ONNX CV models
-                    inferred = {"architecture": "OnnxModerator", "task": "image-classification", "input_layout": "NHWC"}
-            except Exception:
-                # Ignore metadata failures and fall back to presets or error below
-                pass
-
-            if inferred is not None:
-                config = inferred
-            elif model_id not in cls._MODEL_PRESETS:
-                # No config, no inference, no preset => re-raise
-                raise
-
-        # Apply preset if architecture is not present and a preset exists
-        if not config.get("architecture") and model_id in cls._MODEL_PRESETS:
-            preset = cls._MODEL_PRESETS[model_id]
-            for k, v in preset.items():
-                config.setdefault(k, v)
-
-        architecture_name = config.get("architecture")
-        if not architecture_name:
-            raise ValueError(
-                "Config is missing required 'architecture' key (e.g., 'TransformersModerator')."
+            module = importlib.import_module(module_path)
+            moderator_class = getattr(module, architecture)
+        except (ImportError, AttributeError) as e:
+            raise ImportError(
+                f"Could not find or import the class '{architecture}'. "
+                f"Please ensure it is defined in '{module_path}.py'. Error: {e}"
             )
 
-        # Ensure optional deps for the chosen architecture (auto-install if enabled)
-        auto_install = _should_auto_install(kwargs)
-        _ensure_optional_deps(architecture_name, auto_install=auto_install)
+        instance = moderator_class(model_id=model_id, config=cfg, **kwargs)
+        instance.load_model()
+        return instance
 
-        class_path = cls._ARCH_TO_CLASS_PATH.get(architecture_name)
-        if not class_path:
-            raise ValueError(
-                f"Unsupported architecture '{architecture_name}'. "
-                f"Known: {sorted(cls._ARCH_TO_CLASS_PATH.keys())}"
-            )
-
-        module_name, class_name = class_path.rsplit(".", 1)
-        module = importlib.import_module(module_name)
-        integration_cls = getattr(module, class_name)
-
-        predictor = integration_cls(config=config, model_id=model_id, **kwargs)
-        predictor.load_model()
-        return predictor

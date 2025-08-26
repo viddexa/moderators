@@ -1,80 +1,94 @@
-# moderators
+# Moderators
 
-An open-source Python toolkit for multi-domain content moderation.
+This repository provides an extensible core skeleton for content moderation. Phase 1 includes:
+- Standard data classes (Box, PredictionResult)
+- BaseModerator flow (predict → _preprocess → _predict → _postprocess)
+- ModelHubMixin-based `Moderator` factory (reads `config.json` from HF Hub or local)
+- CLI: `moderators` (load and run inference)
 
-## Quickstart
+First integration: Transformers.
 
+## Quick Start
 ```python
-from moderators import Moderator
+from moderators.api import Moderator
 
-# Use a public placeholder model until you publish your own
-model = Moderator.from_pretrained("Falconsai/nsfw_image_detection")
-results = model.predict("path/to/image.jpg")
-for res in results:
-    print(res)
+moderator = Moderator.from_pretrained("org/model")  # or a local folder path
+results = moderator.predict("some input")
+print(results)
 ```
 
-### Save and push to Hub (MVP)
-
-```python
-inst = Moderator.from_pretrained("your-org/your-model")
-inst.save_pretrained("./out")
-inst.push_to_hub("your-org/your-model-copy")
-```
-
-## Automatic Optional Dependency Installation
-
-- The library detects the selected model architecture and attempts to install required optional dependencies automatically on first use.
-- If auto-install fails or is disabled, you will get a clear error with manual install commands.
-
-Disable auto-install:
-- Environment variable: `MODERATORS_DISABLE_AUTO_INSTALL=1`
-- CLI: `moderators settings autoinstall=false`
-
-Manual install (fallback):
-- Transformers: `pip install 'moderators[transformers]'` or `pip install torch>=2.0.0 transformers>=4.30.0 accelerate`
-- Ultralytics: `pip install 'moderators[ultralytics]'` or `pip install ultralytics>=8.0.0`
-- ONNX: `pip install 'moderators[onnx]'` or `pip install onnx onnxruntime`
-
-## ONNX Runtime Backend
-
-Add an ONNX model to the Hub with a config:
-
+`config.json` example (Transformers):
 ```json
 {
-  "architecture": "OnnxModerator",
-  "task": "image-classification",
-  "model_path": "model.onnx",
-  "input_size": [224, 224],
-  "mean": [0.485, 0.456, 0.406],
-  "std": [0.229, 0.224, 0.225],
-  "labels": ["nsfw", "sfw"]
+  "architecture": "TransformersModerator",
+  "task": "image-classification"
 }
 ```
 
-Run:
+- Naming convention: the `XyzModerator` class must be defined in `moderators/integrations/xyz_moderator.py`.
+- Note: `Moderator` is a factory class; it returns the actual integration instance.
 
-```python
-from moderators import Moderator
-model = Moderator.from_pretrained("your-org/onnx-model-repo")
-res = model.predict("image.jpg")
+## Installation (with uv)
+```
+# Core
+uv pip install -e .
+
+# Transformers integration extras
+uv pip install -e ".[transformers]"
 ```
 
-## Ultralytics Backend
-
-```json
-{
-  "architecture": "UltralyticsModerator",
-  "task": "object-detection",
-  "model_path": "your-org/your-yolo-repo",
-  "hub_weights": "yolov8n.pt"
-}
+Alternative with pip:
+```
+pip install -e .
+pip install "moderators[transformers]"
 ```
 
-## Benchmarks
+## Automatic dependency installation
+When using the Transformers integration, the library may auto-install missing dependencies at runtime:
+- transformers
+- A deep learning framework (PyTorch preferred: torch)
+- Pillow (for image tasks)
 
-Simple timing utility:
-
-```bash
-python examples/benchmarks.py your-org/your-model image.jpg --warmup 3 --repeats 20
+It uses `uv` if available, otherwise falls back to `pip`. Disable auto-install via:
 ```
+export MODERATORS_DISABLE_AUTO_INSTALL=1
+```
+
+## Usage Overview
+`Moderator.from_pretrained("org/model")` dynamically loads the correct integration class based on the `"architecture"` field in `config.json`.
+
+## Command Line (CLI)
+Run models directly from the terminal.
+
+Usage:
+```
+moderators <model_id_or_local_dir> <input> [--local-files-only]
+```
+
+Examples:
+- Text classification:
+```
+moderators distilbert/distilbert-base-uncased-finetuned-sst-2-english "I love this!"
+```
+
+- Image classification (Falconsai/nsfw_image_detection) with a local image:
+```
+moderators Falconsai/nsfw_image_detection /path/to/image.jpg
+```
+
+Notes:
+- The CLI prints JSON to stdout.
+- Use `--local-files-only` to force offline usage if all files are already cached.
+
+## Transformers config inference
+If `"architecture"` is missing but the config looks like a Transformers model (e.g., has `architectures`, `transformers_version`, `id2label`/`label2id`), the factory assumes:
+- `architecture = "TransformersModerator"`
+- It tries to infer `"task"` (e.g., classification). If it cannot infer, you must specify `"task"` explicitly (e.g., `"image-classification"`).
+
+## Limitations (Phase 1)
+- Only `TransformersModerator` is supported; other architectures raise `NotImplementedError`.
+- No analytics in this phase.
+- Image tasks require Pillow and at least one DL framework (preferably PyTorch). The library may attempt auto-install, otherwise it will raise an error.
+
+## Integrations
+- Transformers integration

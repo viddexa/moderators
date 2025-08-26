@@ -1,6 +1,2 @@
-from .api import Moderator
-
-__all__ = ["Moderator"]
-
+__all__ = ["api", "cli"]
 __version__ = "0.1.0"
-

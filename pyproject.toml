@@ -1,54 +1,27 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "moderators"
 version = "0.1.0"
-description = "An open-source Python toolkit for multi-domain content moderation."
+description = "Moderators: ModelHubMixin-based factory and core skeleton (Phase 1)."
 readme = "README.md"
 requires-python = ">=3.8"
-license = "Apache-2.0"
-authors = [ { name = "Moderators Team", email = "team@example.com" } ]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
-]
-
+authors = [{ name = "Moderators Team" }]
 dependencies = [
-    "huggingface-hub>=0.18.0",
-    "requests",
-    "numpy",
-    "Pillow"
+  "huggingface-hub>=0.22"
 ]
 
 [project.optional-dependencies]
-transformers = [
-    "torch>=2.0.0",
-    "transformers>=4.30.0",
-    "accelerate"
-]
-ultralytics = [
-    "ultralytics>=8.0.0"
-]
-onnx = [
-    "onnx",
-    "onnxruntime"
-]
-all = [
-    "torch>=2.0.0",
-    "transformers>=4.30.0",
-    "accelerate",
-    "ultralytics>=8.0.0",
-    "onnx",
-    "onnxruntime"
+transformers = ["transformers>=4.36"]
+dev = [
+  "pytest>=7.0",
+  "Pillow>=9.0"
 ]
 
 [project.scripts]
 moderators = "moderators.cli:main"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
