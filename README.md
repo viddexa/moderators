@@ -14,7 +14,7 @@ First integration: Transformers.
 from moderators.auto_model import AutoModerator
 
 moderator = AutoModerator.from_pretrained("org/model")  # or a local folder path
-results = moderator.predict("some input")
+results = moderator("some input")
 print(results)
 ```
 

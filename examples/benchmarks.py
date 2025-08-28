@@ -2,8 +2,7 @@ import argparse
 import statistics
 import time
 from typing import Dict, List, Optional
-
-from moderators import Moderator
+from moderators.auto_model import AutoModerator
 
 
 def summarize(times: List[float]) -> Dict[str, float]:
@@ -17,15 +16,15 @@ def summarize(times: List[float]) -> Dict[str, float]:
 
 def benchmark(model_id: str, image_path: str, warmup: int = 2, repeats: int = 10, backend: Optional[str] = None) -> None:
     kwargs = {"backend": backend} if backend else {}
-    model = Moderator.from_pretrained(model_id, **kwargs)
+    model = AutoModerator.from_pretrained(model_id, **kwargs)
     # warmup
     for _ in range(warmup):
-        model.predict(image_path)
+        model(image_path)
 
     times: List[float] = []
     for _ in range(repeats):
         t0 = time.perf_counter()
-        model.predict(image_path)
+        model(image_path)
         times.append(time.perf_counter() - t0)
 
     stats = summarize(times)

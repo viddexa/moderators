@@ -24,7 +24,7 @@ def test_local_transformers_config_predict_success(tmp_path, fake_transformers):
     mod = AutoModerator.from_pretrained(str(model_dir))
     assert isinstance(mod, TransformersModerator)
 
-    out = mod.predict("hello world")
+    out = mod("hello world")
     assert isinstance(out, list) and len(out) == 1
     pr: PredictionResult = out[0]
     assert isinstance(pr, PredictionResult)
@@ -55,7 +55,7 @@ def test_infer_transformers_from_hf_like_config(tmp_path, fake_transformers):
     mod = AutoModerator.from_pretrained(str(model_dir))
     assert isinstance(mod, TransformersModerator)
 
-    out = mod.predict("any input")
+    out = mod("any input")
     assert isinstance(out, list) and len(out) == 1
     assert out[0].classifications.get("OK") == pytest.approx(0.9, rel=1e-6)
 
@@ -108,7 +108,7 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
     img_path = tmp_path / "tiny.png"
     img_path.write_bytes(base64.b64decode(png_b64))
 
-    out = mod.predict(str(img_path))
+    out = mod(str(img_path))
     assert isinstance(out, list) and len(out) >= 1
     first = out[0]
     assert isinstance(first, PredictionResult)

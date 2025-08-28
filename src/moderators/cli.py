@@ -25,7 +25,7 @@ def main():
 
     mod = AutoModerator.from_pretrained(args.model, local_files_only=args.local_files_only)
     if args.input:
-        out = mod.predict(args.input)
+        out = mod(args.input)
         print(json.dumps([_to_jsonable(x) for x in out], ensure_ascii=False, indent=2))
     else:
         print("Model loaded. Provide the 'input' argument to run inference.")

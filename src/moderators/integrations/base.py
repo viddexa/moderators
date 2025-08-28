@@ -36,7 +36,7 @@ class BaseModerator(ABC):  # derives from ABC
         pass
 
     # Inference flow
-    def predict(self, source: Any, **kwargs: Any):
+    def __call__(self, source: Any, **kwargs: Any):
         # self.run_callbacks("on_predict_start")
         processed_inputs = self._preprocess(source)
         model_outputs = self._predict(processed_inputs)
