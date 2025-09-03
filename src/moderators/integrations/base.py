@@ -31,6 +31,7 @@ class BaseModerator(ABC, ModelHubMixin):
     def __init__(self, config: Dict[str, Any], model_id: str, **kwargs: Any) -> None:
         self.config: Dict[str, Any] = dict(config or {})
         self.model_id: str = model_id
+        self.callbacks = self.get_default_callbacks()
 
     @abstractmethod
     def load_model(self) -> None:
@@ -39,11 +40,11 @@ class BaseModerator(ABC, ModelHubMixin):
 
     # Inference flow
     def __call__(self, source: Any, **kwargs: Any):
-        # self.run_callbacks("on_predict_start")
+        self.run_callbacks("on_predict_start")
         processed_inputs = self._preprocess(source)
         model_outputs = self._predict(processed_inputs)
         results = self._postprocess(model_outputs)
-        # self.run_callbacks("on_predict_end")
+        self.run_callbacks("on_predict_end")
         return results
 
     @abstractmethod
@@ -67,3 +68,18 @@ class BaseModerator(ABC, ModelHubMixin):
         Save model and any processors to the given directory.
         """
         raise NotImplementedError
+
+    # Callback system (simple MVP)
+    def get_default_callbacks(self) -> Dict[str, List]:
+        from moderators.utils.callbacks import DEFAULT_CALLBACKS
+
+        return {k: list(v) for k, v in DEFAULT_CALLBACKS.items()}
+
+
+    def run_callbacks(self, event_name: str) -> None:
+        for func in self.callbacks.get(event_name, []):
+            try:
+                func(self)
+            except Exception:
+                # Do not break inference flow due to a callback failure
+                pass

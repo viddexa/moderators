@@ -86,9 +86,60 @@ If `"architecture"` is missing but the config looks like a Transformers model (e
 - `architecture = "TransformersModerator"`
 - It tries to infer `"task"` (e.g., classification). If it cannot infer, you must specify `"task"` explicitly (e.g., `"image-classification"`).
 
+## Callbacks
+Moderators run a minimal callback system around prediction:
+- `on_predict_start(moderator)` is called before prediction.
+- `on_predict_end(moderator)` is called after prediction.
+
+By default, `on_predict_start` enqueues a lightweight analytics event (see below). You can customize per-instance callbacks:
+```python
+mod = AutoModerator.from_pretrained("org/model")
+# Disable all start callbacks (including analytics)
+mod.callbacks["on_predict_start"].clear()
+# Or add your own callback
+def my_callback(m):
+    print("Starting inference for", m.model_id)
+mod.callbacks["on_predict_start"].append(my_callback)
+```
+
+## Anonymous Analytics (opt‑out)
+To improve the library, Moderators can send anonymous usage analytics. This is minimal, rate-limited, and runs in the background thread so it never blocks inference.
+
+What is sent:
+- Event name: task (e.g., `image-classification`, `text-classification`)
+- Event params: `{ library: "moderators", library_version: <semver>, model_id: <string or null> }`
+- Client identifier: a random UUID stored locally to avoid counting the same machine as new each time
+
+What is NOT sent:
+- No inputs, files, or raw model outputs
+- No personal data
+
+Behavior:
+- Rate limit: events are sent at most once every 30 seconds
+- Queue size: up to 25 events are buffered
+- Transport: sent asynchronously with retries
+
+Opt‑out options:
+- Environment variable (process-wide):
+  ```
+  export MODERATORS_DISABLE_ANALYTICS=1
+  ```
+- Settings file (persistent, user-level): create `~/.moderators/settings.json` with:
+  ```json
+  { "sync": false }
+  ```
+  You can re‑enable by setting `"sync": true` or removing the file.
+- Remove the local anonymous identifier (optional):
+  ```
+  rm -f ~/.moderators/user.json
+  ```
+
+Notes:
+- Set the environment variable before importing/starting your process for guaranteed effect.
+- Analytics runs via a background thread and won’t affect your model latency.
+
 ## Limitations (Phase 1)
 - Only `TransformersModerator` is supported; other architectures raise `NotImplementedError`.
-- No analytics in this phase.
 - Image tasks require Pillow and at least one DL framework (preferably PyTorch). The library may attempt auto-install, otherwise it will raise an error.
 
 ## Integrations
