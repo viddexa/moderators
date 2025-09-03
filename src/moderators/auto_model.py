@@ -1,4 +1,13 @@
-# python
+# auto_model.py
+
+"""
+AutoModerator Factory.
+
+This module contains the AutoModerator class, a factory that automatically
+selects and initializes the correct moderator class based on a model identifier
+from the Hugging Face Hub.
+"""
+
 from __future__ import annotations
 
 import importlib
@@ -6,23 +15,23 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-try:
-    from huggingface_hub import ModelHubMixin  # do not import hf_hub_download here
-except Exception:
-    class ModelHubMixin:
-        @classmethod
-        def from_pretrained(cls, *args, **kwargs):
-            return cls._from_pretrained(*args, **kwargs)
+# We import BaseModerator only for type hinting.
+# This avoids potential circular dependency issues.
+from .integrations.base import BaseModerator
+
 
 def _load_config(identifier: str, *, local_files_only: bool = False) -> Dict[str, Any]:
+    """
+    Loads a config.json file from a local path or the Hugging Face Hub.
+    """
     p = Path(identifier)
-    if p.exists():
+    if p.is_dir():
         cfg_path = p / "config.json"
         if not cfg_path.exists():
             raise FileNotFoundError(f"config.json not found in local folder: {cfg_path}")
-        return json.loads(cfg_path.read_text())
+        return json.loads(cfg_path.read_text(encoding="utf-8"))
 
-    # Lazy import to avoid pulling heavy deps during module import
+    # We lazy-import huggingface_hub only when needed to reduce initial import time.
     from huggingface_hub import hf_hub_download
 
     cfg_fp = hf_hub_download(
@@ -31,11 +40,14 @@ def _load_config(identifier: str, *, local_files_only: bool = False) -> Dict[str
         repo_type="model",
         local_files_only=local_files_only,
     )
-    return json.loads(Path(cfg_fp).read_text())
+    return json.loads(Path(cfg_fp).read_text(encoding="utf-8"))
 
 
 def _is_transformers_cfg(cfg: Dict[str, Any]) -> bool:
-    # `architectures` is not enough alone to identify a Transformers model
+    """
+    Checks if the given configuration belongs to a Transformers model.
+    """
+    # The `architectures` key alone is not enough; we confirm with other signatures.
     has_tf_sig = any(
         k in cfg for k in ("transformers_version", "model_type", "id2label", "label2id")
     )
@@ -44,41 +56,78 @@ def _is_transformers_cfg(cfg: Dict[str, Any]) -> bool:
 
 
 def _infer_task(cfg: Dict[str, Any]) -> Optional[str]:
-    # get general task from architectures or problem_type
+    """
+    Attempts to infer the model's task by inspecting its architecture or problem_type.
+    """
     archs = [str(a).lower() for a in cfg.get("architectures", [])]
     if any("classification" in a for a in archs):
         return "image-classification"
+
     prob = str(cfg.get("problem_type", "")).lower()
     if "classification" in prob:
         return "image-classification"
+
     return None
 
 
-class AutoModerator(ModelHubMixin):
+class AutoModerator:
+    """
+    A factory class that loads the correct moderator using the `from_pretrained` method.
+
+    This class cannot be instantiated directly (its `__init__` method will raise an error).
+    Instead, it should be used like:
+    `AutoModerator.from_pretrained('username/my-model')`
+    """
+
     def __init__(self, *args, **kwargs) -> None:
+        """AutoModerator cannot be instantiated directly."""
         raise EnvironmentError(
             "AutoModerator is a factory class and cannot be instantiated directly. "
             "Please use the `AutoModerator.from_pretrained('model_id')` method."
         )
 
     @classmethod
-    def _from_pretrained(
-        cls,
-        model_id: str,
-        config: Optional[dict] = None,
-        local_files_only: bool = False,
-        **kwargs: Any,
-    ):
+    def from_pretrained(
+            cls,
+            model_id: str,
+            config: Optional[dict] = None,
+            local_files_only: bool = False,
+            **kwargs: Any,
+    ) -> BaseModerator:
+        """
+        Loads the appropriate moderator from a model ID on the Hub or a local path.
+
+        This method reads the `config.json` file, determines the model's architecture,
+        dynamically loads the corresponding moderator class, and returns an
+        initialized instance of it.
+
+        Args:
+            model_id (str): The Hugging Face Hub ID of the model to load or a path to a
+                local directory.
+            config (dict, optional): If provided, this config will be used instead of
+                downloading one from the Hub.
+            local_files_only (bool, optional): If True, will not attempt to download files
+                and will only look at local cached files. Defaults to False.
+            **kwargs: Additional keyword arguments to be passed to the moderator
+                class's `__init__` method.
+
+        Returns:
+            BaseModerator: A loaded and ready-to-use moderator object.
+        """
+        # Step 1: Load the configuration
         cfg = dict(config or _load_config(model_id, local_files_only=local_files_only))
 
+        # Step 2: Determine the model architecture
         architecture = cfg.get("architecture")
         if not architecture:
+            # If architecture is not specified, try to infer if it's a Transformers model
             if _is_transformers_cfg(cfg):
                 cfg["architecture"] = "TransformersModerator"
+                # If the task is also not specified, try to infer it
                 if not cfg.get("task"):
-                    inferred = _infer_task(cfg)
-                    if inferred:
-                        cfg["task"] = inferred
+                    inferred_task = _infer_task(cfg)
+                    if inferred_task:
+                        cfg["task"] = inferred_task
                     else:
                         raise ValueError(
                             "Could not infer 'task' from the Transformers config. "
@@ -88,10 +137,12 @@ class AutoModerator(ModelHubMixin):
             else:
                 raise ValueError(
                     f"Could not determine 'architecture' from config.json for model '{model_id}'. "
+                    "Please specify 'architecture' in the config file."
                 )
 
         architecture = cfg["architecture"]
 
+        # Step 3: Dynamically load the correct moderator class based on the architecture
         # For MVP, only TransformersModerator is implemented
         if architecture != "TransformersModerator":
             raise NotImplementedError(
@@ -111,7 +162,8 @@ class AutoModerator(ModelHubMixin):
                 f"Please ensure it is defined in '{module_path}.py'. Error: {e}"
             )
 
+        # Step 4: Initialize the moderator class and load its model
         instance = moderator_class(model_id=model_id, config=cfg, **kwargs)
         instance.load_model()
-        return instance
 
+        return instance

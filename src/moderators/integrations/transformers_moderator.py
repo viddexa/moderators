@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any, Dict, List
 
 from .base import BaseModerator, PredictionResult
@@ -69,4 +71,40 @@ class TransformersModerator(BaseModerator):
                 )
             )
         return results
+
+    def save_pretrained(self, save_directory: str, **kwargs: Any) -> str:
+        """
+        - Saves model, tokenizer, processor (if any) to `save_directory`.
+        - Also saves/updates `config.json` with architecture and task info.
+        Returns the `save_directory` path.
+        """
+        out_dir = Path(save_directory)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        pipe = getattr(self, "_pipe", None)
+        model = getattr(pipe, "model", None) if pipe is not None else None
+        tokenizer = getattr(pipe, "tokenizer", None) if pipe is not None else None
+        processor = getattr(pipe, "processor", None) if pipe is not None else getattr(pipe, "feature_extractor", None)
+
+        if model and hasattr(model, "save_pretrained"):
+            model.save_pretrained(out_dir)
+        if tokenizer and hasattr(tokenizer, "save_pretrained"):
+            tokenizer.save_pretrained(out_dir)
+        if processor and hasattr(processor, "save_pretrained"):
+            processor.save_pretrained(out_dir)
+
+        # config.json'u garanti altına al ve özel alanları ekle
+        cfg_path = out_dir / "config.json"
+        cfg = {}
+        if cfg_path.exists():
+            try:
+                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            except Exception:
+                cfg = {}
+
+        cfg["architecture"] = "TransformersModerator"
+        if self.config.get("task"):
+            cfg["task"] = self.config["task"]
+        cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+        return str(out_dir)
 

@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List
 from abc import ABC, abstractmethod  # added
 
+from huggingface_hub import ModelHubMixin
+
 
 @dataclass
 class Box:
@@ -25,7 +27,7 @@ class PredictionResult:
     raw_output: Any = None
 
 
-class BaseModerator(ABC):  # derives from ABC
+class BaseModerator(ABC, ModelHubMixin):
     def __init__(self, config: Dict[str, Any], model_id: str, **kwargs: Any) -> None:
         self.config: Dict[str, Any] = dict(config or {})
         self.model_id: str = model_id
@@ -58,3 +60,10 @@ class BaseModerator(ABC):  # derives from ABC
     def _postprocess(self, model_outputs: Any) -> Any:
         """Convert outputs to PredictionResult format."""
         pass
+
+    @abstractmethod
+    def save_pretrained(self, save_directory: str, **kwargs: Any) -> str:
+        """
+        Save model and any processors to the given directory.
+        """
+        raise NotImplementedError
