@@ -11,14 +11,14 @@ def preprocess_image_input(inputs: Any, min_side: int = 16) -> Any:
     """
     try:
         from PIL import Image
-    except Exception:
+    except ImportError:
         return inputs
 
     img = None
     if isinstance(inputs, (str, Path)):
         try:
             img = Image.open(str(inputs))
-        except Exception:
+        except (FileNotFoundError, OSError):
             return inputs
     elif hasattr(inputs, "mode") and hasattr(inputs, "convert"):
         img = inputs
@@ -26,16 +26,14 @@ def preprocess_image_input(inputs: Any, min_side: int = 16) -> Any:
         return inputs
 
     try:
-        if getattr(img, "mode", "") != "RGB":
-            img = img.convert("RGB")
-    except Exception:
-        return inputs
-
-    try:
         w, h = img.size
         if w < min_side or h < min_side:
-            img = img.resize((max(min_side, w), max(min_side, h)), Image.BILINEAR)
-    except Exception:
+            scale = max(min_side / w, min_side / h)
+            new_w = int(round(w * scale))
+            new_h = int(round(h * scale))
+            resampling = getattr(getattr(Image, "Resampling", Image), "BILINEAR")
+            img = img.resize((new_w, new_h), resampling)
+    except (ValueError, OSError):
         pass
 
     return img
