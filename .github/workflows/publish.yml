@@ -1,0 +1,29 @@
+name: Publish Python Package
+
+on:
+  release:
+    types: [published, edited]
+
+jobs:
+  pypi-publish:
+    name: upload release to PyPI
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup uv python package manager
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          
+      - name: Build package distributions
+        run: |
+          uv build
+          
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
