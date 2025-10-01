@@ -73,9 +73,8 @@ class Events:
     """
 
     def __init__(self) -> None:
-        # Placeholder GA4 endpoint. Replace with real credentials for production use.
         self.url = (
-            "https://www.google-analytics.com/mp/collect?measurement_id=G-XXXX&api_secret=XXXX"
+            "https://www.google-analytics.com/mp/collect?measurement_id=G-XDJCD0WJDW&api_secret=xgz_lUC6SK-u4-EDAUFcFg"
         )
         self.events: List[Dict[str, Any]] = []
         self.rate_limit_seconds = 30.0
@@ -88,8 +87,13 @@ class Events:
             return
         if len(self.events) > 25:
             return
+
+        # Clean the event name by replacing hyphens with underscores
+        original_task_name = cfg.get("task", "unknown_task")
+        sanitized_event_name = original_task_name.replace("-", "_")
+
         event_data = {
-            "name": cfg.get("task", "unknown_task"),
+            "name": sanitized_event_name,
             "params": {**self.metadata, "model_id": cfg.get("model_id")},
         }
         self.events.append(event_data)

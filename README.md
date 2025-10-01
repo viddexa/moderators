@@ -102,41 +102,11 @@ def my_callback(m):
 mod.callbacks["on_predict_start"].append(my_callback)
 ```
 
-## Anonymous Analytics (opt‑out)
-To improve the library, Moderators can send anonymous usage analytics. This is minimal, rate-limited, and runs in the background thread so it never blocks inference.
+## Anonymous Telemetry
 
-What is sent:
-- Event name: task (e.g., `image-classification`, `text-classification`)
-- Event params: `{ library: "moderators", library_version: <semver>, model_id: <string or null> }`
-- Client identifier: a random UUID stored locally to avoid counting the same machine as new each time
+We believe in providing our users with full control over their data. By default, our package is configured to collect analytics to help improve the experience for all users. However, we respect that some users may prefer to opt out of this data collection.
 
-What is NOT sent:
-- No inputs, files, or raw model outputs
-- No personal data
-
-Behavior:
-- Rate limit: events are sent at most once every 30 seconds
-- Queue size: up to 25 events are buffered
-- Transport: sent asynchronously with retries
-
-Opt‑out options:
-- Environment variable (process-wide):
-  ```
-  export MODERATORS_DISABLE_ANALYTICS=1
-  ```
-- Settings file (persistent, user-level): create `~/.moderators/settings.json` with:
-  ```json
-  { "sync": false }
-  ```
-  You can re‑enable by setting `"sync": true` or removing the file.
-- Remove the local anonymous identifier (optional):
-  ```
-  rm -f ~/.moderators/user.json
-  ```
-
-Notes:
-- Set the environment variable before importing/starting your process for guaranteed effect.
-- Analytics runs via a background thread and won’t affect your model latency.
+To opt out of sending analytics, you can simply create `~/.moderators/settings.json` file with `"sync": false`. This ensures that no data is transmitted from your machine to our analytics tools.
 
 ## Limitations (Phase 1)
 - Only `TransformersModerator` is supported; other architectures raise `NotImplementedError`.

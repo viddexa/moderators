@@ -31,6 +31,7 @@ class BaseModerator(ABC, ModelHubMixin):
     def __init__(self, config: Dict[str, Any], model_id: str, **kwargs: Any) -> None:
         self.config: Dict[str, Any] = dict(config or {})
         self.model_id: str = model_id
+        self.config.setdefault("model_id", self.model_id)
         self.callbacks = self.get_default_callbacks()
 
     @abstractmethod

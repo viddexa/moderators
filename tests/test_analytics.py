@@ -49,7 +49,7 @@ def test_events_sends_payload_via_requests_post(tmp_path, monkeypatch):
     monkeypatch.setattr(analytics.requests, "post", fake_post, raising=True)
 
     # Send an event.
-    cfg = {"task": "text-classification", "model_id": "model-foo"}
+    cfg = {"task": "text_classification", "model_id": "model_foo"}
     analytics.events(cfg)
 
     # A single post request should have been made.
@@ -66,11 +66,11 @@ def test_events_sends_payload_via_requests_post(tmp_path, monkeypatch):
     assert "events" in payload and isinstance(payload["events"], list) and len(payload["events"]) == 1
 
     ev = payload["events"][0]
-    assert ev.get("name") == "text-classification"
+    assert ev.get("name") == "text_classification"
     assert isinstance(ev.get("params"), dict)
     params = ev["params"]
     # model_id is carried in the params.
-    assert params.get("model_id") == "model-foo"
+    assert params.get("model_id") == "model_foo"
     # Library metadata should be present.
     assert params.get("library") == "moderators"
     assert "library_version" in params

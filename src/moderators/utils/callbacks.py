@@ -1,7 +1,7 @@
 from moderators.utils.analytics import events
 
 def on_predict_start(predictor):
-    # Analitik olayını güvenli şekilde kuyruga ekle (non-blocking)
+    # Add analytics event
     try:
         cfg = {
             "task": predictor.config.get("task", "unknown_task"),
@@ -9,7 +9,7 @@ def on_predict_start(predictor):
         }
         events(cfg)
     except Exception:
-        # Callback hataları tahammüllü olmalı
+        # Callback should not break inference flow
         pass
 
 

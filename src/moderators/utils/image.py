@@ -1,39 +1,55 @@
 from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 
-
-def preprocess_image_input(inputs: Any, min_side: int = 16) -> Any:
+def preprocess_image_input(inputs: Any, min_side: int = 0) -> Any:
     """
-    Open path-like inputs with PIL, convert to RGB, ensure a minimal spatial size,
-    and return a PIL.Image.Image. If PIL is unavailable or input is unsupported, return original input.
+    Preprocesses image inputs from Path, PIL Image, or a list/tuple (batch).
+    - Opens the image if the input is a path.
+    - Converts the image to RGB.
+    - (Optional) If min_side > 0, proportionally scales up small images.
+    Returns the input as is if Pillow is not installed or if the input type is unrecognized.
     """
     try:
         from PIL import Image
     except ImportError:
         return inputs
 
-    img = None
-    if isinstance(inputs, (str, Path)):
-        try:
-            img = Image.open(str(inputs))
-        except (FileNotFoundError, OSError):
-            return inputs
-    elif hasattr(inputs, "mode") and hasattr(inputs, "convert"):
-        img = inputs
-    else:
-        return inputs
+    def _process(obj: Any):
+        # Path or string
+        if isinstance(obj, (str, Path)):
+            try:
+                img = Image.open(str(obj))
+            except (FileNotFoundError, OSError):
+                return obj
+        # PIL Image-like object
+        elif hasattr(obj, "mode") and hasattr(obj, "convert"):
+            img = obj
+        else:
+            return obj
 
-    try:
-        w, h = img.size
-        if w < min_side or h < min_side:
-            scale = max(min_side / w, min_side / h)
-            new_w = int(round(w * scale))
-            new_h = int(round(h * scale))
-            resampling = getattr(getattr(Image, "Resampling", Image), "BILINEAR")
-            img = img.resize((new_w, new_h), resampling)
-    except (ValueError, OSError):
-        pass
+        # Ensure the image is in RGB mode
+        if img.mode != "RGB":
+            try:
+                img = img.convert("RGB")
+            except Exception:
+                return obj  # Return the original if conversion fails
 
-    return img
+        # Optional resizing
+        if min_side and min_side > 0:
+            try:
+                w, h = img.size
+                if w < min_side or h < min_side:
+                    scale = max(min_side / w, min_side / h)
+                    new_w = int(round(w * scale))
+                    new_h = int(round(h * scale))
+                    resample = getattr(getattr(Image, "Resampling", Image), "BILINEAR")
+                    img = img.resize((new_w, new_h), resample)
+            except Exception:
+                pass
+
+        return img
+
+    if isinstance(inputs, (list, tuple)):
+        return [ _process(x) for x in inputs ]
+    return _process(inputs)

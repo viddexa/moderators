@@ -42,7 +42,7 @@ class TransformersModerator(BaseModerator):
     def _preprocess(self, inputs: Any) -> Any:
         task = str(self.config.get("task", "")).lower()
         if "image" in task:
-            return preprocess_image_input(inputs)
+            return preprocess_image_input(inputs, min_side=2)
         return inputs
 
     def _predict(self, processed_inputs: Any) -> Any:
