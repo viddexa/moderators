@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "moderators"
-version = "0.0.1"
+dynamic = ["version"]
 description = "Moderators: One package to moderate them all"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "Moderators Team" }]
 dependencies = [
   "huggingface-hub>=0.22",
-  "requests",
+  "requests"
 ]
 
 [project.urls]
@@ -30,6 +30,9 @@ dev = [
 
 [project.scripts]
 moderators = "moderators.cli:main"
+
+[tool.hatch.version]
+path = "src/moderators/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/moderators"]
