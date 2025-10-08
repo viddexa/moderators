@@ -8,6 +8,7 @@ dynamic = ["version"]
 description = "Moderators: One package to moderate them all"
 readme = "README.md"
 requires-python = ">=3.9"
+license = "Apache-2.0"
 authors = [{ name = "Moderators Team" }]
 dependencies = [
   "huggingface-hub>=0.22",

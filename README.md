@@ -1,6 +1,9 @@
 # Moderators
 
-[![CI](https://github.com/viddexa/moderators/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/viddexa/moderators/actions/workflows/ci.yml)
+[![Moderators PYPI](https://img.shields.io/pypi/v/moderators?color=blue)](https://pypi.org/project/moderators/)
+[![Moderators HuggingFace Space](https://raw.githubusercontent.com/obss/sahi/main/resources/hf_spaces_badge.svg)](https://huggingface.co/spaces/viddexa/moderators)
+[![Moderators CI](https://github.com/viddexa/moderators/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/viddexa/moderators/actions/workflows/ci.yml)
+[![Moderators License](https://img.shields.io/pypi/l/moderators)](https://github.com/viddexa/moderators/blob/main/LICENSE)
 
 # TODO: refactor readme to target users instead of maintainers
 
