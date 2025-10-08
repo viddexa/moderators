@@ -31,12 +31,50 @@ jobs:
         run: uv sync --extra dev --extra transformers
 
       - name: Run ruff linter
-        uses: astral-sh/ruff-action@v2
+        id: ruff
+        run: |
+          uv run ruff check . 2>&1 | tee ruff.log
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Post ruff results as PR comment
+        if: always() && steps.ruff.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
         with:
-          src: "."
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('ruff.log', 'utf8');
+            if (output.trim()) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '## Ruff Linting Issues\n\n```\n' + output + '\n```'
+              });
+            }
 
       - name: Run ruff formatter check
-        run: uv run ruff format --check .
+        id: ruff-format
+        run: |
+          uv run ruff format --check . 2>&1 | tee ruff-format.log
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Post ruff format results as PR comment
+        if: always() && steps.ruff-format.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('ruff-format.log', 'utf8');
+            if (output.trim()) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '## Ruff Formatting Issues\n\n```\n' + output + '\n```'
+              });
+            }
 
       - name: Run docformatter check
         id: docformatter
@@ -61,8 +99,11 @@ jobs:
               });
             }
 
-      - name: Fail if docformatter check failed
-        if: steps.docformatter.outcome == 'failure'
+      - name: Fail if any linting check failed
+        if: |
+          steps.ruff.outcome == 'failure' ||
+          steps.ruff-format.outcome == 'failure' ||
+          steps.docformatter.outcome == 'failure'
         run: exit 1
 
   test:
