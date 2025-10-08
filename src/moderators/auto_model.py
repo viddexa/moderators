@@ -8,10 +8,9 @@ class based on a model identifier from the Hugging Face Hub.
 
 from __future__ import annotations
 
-from pathlib import Path
 import importlib
 import json
-
+from pathlib import Path
 from typing import Any
 
 # We import BaseModerator only for type hinting.
