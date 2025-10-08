@@ -1,5 +1,7 @@
 # Moderators
 
+# TODO: refactor readme to target users instead of maintainers
+
 This repository provides an extensible core skeleton for content moderation. Phase 1 includes:
 - Standard data classes (Box, PredictionResult)
 - BaseModerator flow (predict → _preprocess → _predict → _postprocess)
