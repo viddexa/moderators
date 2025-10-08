@@ -10,6 +10,33 @@ This repository provides an extensible core skeleton for content moderation. Pha
 
 First integration: Transformers.
 
+## Installation
+
+Create Python environment (Python 3.10+ recommended):
+
+```bash
+uv venv --python 3.10
+source .venv/bin/activate
+```
+
+Install with pip:
+
+```bash
+pip install moderators[transformers]
+```
+
+Install with uv:
+
+```bash
+uv add "moderators[transformers]"
+```
+
+Install from source:
+
+```bash
+uv sync --extra transformers
+```
+
 ## Quick Start
 
 ```python
@@ -30,21 +57,6 @@ print(results)
 
 - Naming convention: the `XyzModerator` class must be defined in `moderators/integrations/xyz_moderator.py`.
 - Note: `AutoModerator` is a factory class; it returns the actual integration instance.
-
-## Installation (with uv)
-```
-# Core
-uv pip install -e .
-
-# Transformers integration extras
-uv pip install -e ".[transformers]"
-```
-
-Alternative with pip:
-```
-pip install -e .
-pip install "moderators[transformers]"
-```
 
 ## Automatic dependency installation
 When using the Transformers integration, the library may auto-install missing dependencies at runtime:
