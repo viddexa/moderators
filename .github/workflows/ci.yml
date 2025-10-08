@@ -31,7 +31,9 @@ jobs:
 
       - name: Run ruff linter
         id: ruff
-        run: uv run ruff check . 2>&1 | tee ruff.log
+        run: |
+          set -o pipefail
+          uv run ruff check . 2>&1 | tee ruff.log
         continue-on-error: true
 
       - name: Post results as PR comment
@@ -86,7 +88,9 @@ jobs:
 
       - name: Run ruff formatter check
         id: ruff-format
-        run: uv run ruff format --check . 2>&1 | tee ruff-format.log
+        run: |
+          set -o pipefail
+          uv run ruff format --check . 2>&1 | tee ruff-format.log
         continue-on-error: true
 
       - name: Post results as PR comment
@@ -137,7 +141,9 @@ jobs:
 
       - name: Run docformatter check
         id: docformatter
-        run: uv run docformatter --config pyproject.toml --check --recursive src/ tests/ 2>&1 | tee docformatter.log
+        run: |
+          set -o pipefail
+          uv run docformatter --config pyproject.toml --check --recursive src/ tests/ 2>&1 | tee docformatter.log
         continue-on-error: true
 
       - name: Post results as PR comment
