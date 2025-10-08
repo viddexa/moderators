@@ -8,9 +8,10 @@ class based on a model identifier from the Hugging Face Hub.
 
 from __future__ import annotations
 
+from pathlib import Path
 import importlib
 import json
-from pathlib import Path
+
 from typing import Any
 
 # We import BaseModerator only for type hinting.
@@ -79,16 +80,14 @@ class AutoModerator:
     @classmethod
     def from_pretrained(
         cls,
-        model_id: str,
-        config: dict | None = None,
+        model_id: str, config: dict | None = None,
         local_files_only: bool = False,
         **kwargs: Any,
     ) -> BaseModerator:
         """
         Loads the appropriate moderator from a model ID on the Hub or a local path.
 
-        This method reads the `config.json` file, determines the model's architecture,
-        dynamically loads the corresponding moderator class, and returns an
+        This method reads the `config.json` file, determines the model's architecture, dynamically loads the corresponding moderator class, and returns an
         initialized instance of it.
 
         Args:

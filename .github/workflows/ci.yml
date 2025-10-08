@@ -31,13 +31,39 @@ jobs:
         run: uv sync --extra dev --extra transformers
 
       - name: Run ruff linter
-        run: uv run ruff check .
+        uses: astral-sh/ruff-action@v2
+        with:
+          src: "."
 
       - name: Run ruff formatter check
         run: uv run ruff format --check .
 
       - name: Run docformatter check
-        run: uv run docformatter --check --recursive src/ tests/
+        id: docformatter
+        run: |
+          uv run docformatter --check --recursive src/ tests/ 2>&1 | tee docformatter.log
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Post docformatter results as PR comment
+        if: failure() && steps.docformatter.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('docformatter.log', 'utf8');
+            if (output.trim()) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '## Docformatter Issues\n\n```\n' + output + '\n```'
+              });
+            }
+
+      - name: Fail if docformatter check failed
+        if: steps.docformatter.outcome == 'failure'
+        run: exit 1
 
   test:
     name: Run tests
