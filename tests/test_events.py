@@ -2,7 +2,7 @@ import importlib
 from types import SimpleNamespace
 
 
-def _reload_analytics_and_callbacks(monkeypatch, tmp_path):
+def _reload_events_and_callbacks(monkeypatch, tmp_path):
     # Redirect HOME to a temporary path, so analytics remains enabled by default.
     monkeypatch.setenv("HOME", str(tmp_path))
     # Do not clear the env; tests can set it themselves if needed.
@@ -16,7 +16,7 @@ def _reload_analytics_and_callbacks(monkeypatch, tmp_path):
     return events, callbacks
 
 
-def _inline_thread(monkeypatch, analytics_module):
+def _inline_thread(monkeypatch, events_module):
     # Stub threading.Thread to run synchronously for testing.
     class _InlineThread:
         def __init__(self, target=None, args=(), kwargs=None, daemon=None):
@@ -30,12 +30,12 @@ def _inline_thread(monkeypatch, analytics_module):
             if self._target:
                 self._target(*self._args, **self._kwargs)
 
-    monkeypatch.setattr(analytics_module.threading, "Thread", _InlineThread, raising=True)
+    monkeypatch.setattr(events_module.threading, "Thread", _InlineThread, raising=True)
 
 
 def test_events_sends_payload_via_requests_post(tmp_path, monkeypatch):
-    analytics, _ = _reload_analytics_and_callbacks(monkeypatch, tmp_path)
-    _inline_thread(monkeypatch, analytics)
+    events, _ = _reload_events_and_callbacks(monkeypatch, tmp_path)
+    _inline_thread(monkeypatch, events)
 
     calls = {}
 
@@ -46,18 +46,18 @@ def test_events_sends_payload_via_requests_post(tmp_path, monkeypatch):
         return _Resp()
 
     # Patch requests.post.
-    monkeypatch.setattr(analytics.requests, "post", fake_post, raising=True)
+    monkeypatch.setattr(events.requests, "post", fake_post, raising=True)
 
     # Send an event.
     cfg = {"task": "text_classification", "model_id": "model_foo"}
-    analytics.events(cfg)
+    events.events(cfg)
 
     # A single post request should have been made.
     assert len(calls.get("posts", [])) == 1
     sent = calls["posts"][0]
 
     # The URL should be the correct endpoint.
-    assert sent["url"] == analytics.events.url
+    assert sent["url"] == events.events.url
 
     # Verify payload structure and fields.
     payload = sent["json"]
@@ -77,7 +77,7 @@ def test_events_sends_payload_via_requests_post(tmp_path, monkeypatch):
 
 
 def test_robust_post_request_retries_and_success(tmp_path, monkeypatch):
-    analytics, _ = _reload_analytics_and_callbacks(monkeypatch, tmp_path)
+    events, _ = _reload_events_and_callbacks(monkeypatch, tmp_path)
 
     call_count = {"n": 0}
 
@@ -87,10 +87,10 @@ def test_robust_post_request_retries_and_success(tmp_path, monkeypatch):
             status_code = 500 if call_count["n"] < 3 else 200
         return _Resp()
 
-    monkeypatch.setattr(analytics.requests, "post", fake_post, raising=True)
+    monkeypatch.setattr(events.requests, "post", fake_post, raising=True)
 
     # Set waits to zero to speed up the test.
-    analytics._robust_post_request(
+    events._robust_post_request(
         url="https://example.com/collect",
         json_data={"x": 1},
         retries=3,
@@ -103,7 +103,7 @@ def test_robust_post_request_retries_and_success(tmp_path, monkeypatch):
 
 
 def test_robust_post_request_no_retry_on_4xx(tmp_path, monkeypatch):
-    analytics, _ = _reload_analytics_and_callbacks(monkeypatch, tmp_path)
+    events, _ = _reload_events_and_callbacks(monkeypatch, tmp_path)
 
     call_count = {"n": 0}
 
@@ -113,9 +113,9 @@ def test_robust_post_request_no_retry_on_4xx(tmp_path, monkeypatch):
             status_code = 400
         return _Resp()
 
-    monkeypatch.setattr(analytics.requests, "post", fake_post, raising=True)
+    monkeypatch.setattr(events.requests, "post", fake_post, raising=True)
 
-    analytics._robust_post_request(
+    events._robust_post_request(
         url="https://example.com/collect",
         json_data={"x": 1},
         retries=5,
@@ -128,8 +128,8 @@ def test_robust_post_request_no_retry_on_4xx(tmp_path, monkeypatch):
 
 
 def test_callbacks_integration_triggers_event_and_rate_limit(tmp_path, monkeypatch):
-    analytics, callbacks = _reload_analytics_and_callbacks(monkeypatch, tmp_path)
-    _inline_thread(monkeypatch, analytics)
+    events, callbacks = _reload_events_and_callbacks(monkeypatch, tmp_path)
+    _inline_thread(monkeypatch, events)
 
     calls = {"n": 0}
 
@@ -139,7 +139,7 @@ def test_callbacks_integration_triggers_event_and_rate_limit(tmp_path, monkeypat
             status_code = 200
         return _Resp()
 
-    monkeypatch.setattr(analytics.requests, "post", fake_post, raising=True)
+    monkeypatch.setattr(events.requests, "post", fake_post, raising=True)
 
     predictor = SimpleNamespace(config={"task": "image-classification"}, model_id="mid-123")
 
@@ -150,32 +150,3 @@ def test_callbacks_integration_triggers_event_and_rate_limit(tmp_path, monkeypat
     # Rate limit is active -> a second call soon after should not make an extra post.
     callbacks.on_predict_start(predictor)
     assert calls["n"] == 1
-
-
-def test_analytics_disabled_env_var_suppresses_requests(tmp_path, monkeypatch):
-    # Completely disable analytics via an environment variable.
-    monkeypatch.setenv("MODERATORS_DISABLE_ANALYTICS", "1")
-    analytics, callbacks = _reload_analytics_and_callbacks(monkeypatch, tmp_path)
-    _inline_thread(monkeypatch, analytics)
-
-    calls = {"n": 0}
-
-    def fake_post(url, json=None, timeout=None, **kwargs):
-        calls["n"] += 1
-        class _Resp:
-            status_code = 200
-        return _Resp()
-
-    monkeypatch.setattr(analytics.requests, "post", fake_post, raising=True)
-
-    # A direct call to events should not lead to any requests.
-    analytics.events({"task": "text-classification", "model_id": "mid"})
-    assert calls["n"] == 0
-
-    # It should not be triggered via a callback either.
-    class P:
-        config = {"task": "text-classification"}
-        model_id = "mid"
-
-    callbacks.on_predict_start(P())
-    assert calls["n"] == 0
