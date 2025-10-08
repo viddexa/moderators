@@ -13,10 +13,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  lint:
-    name: Lint and format checks
+  ruff-lint:
+    name: Ruff linting
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,35 +29,13 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev --extra transformers
 
-      - name: Run all linting checks in parallel
-        id: lint-checks
-        run: |
-          # Run all linters in parallel and capture their outputs
-          (uv run ruff check . 2>&1 | tee ruff.log; echo $? > ruff.exit) &
-          (uv run ruff format --check . 2>&1 | tee ruff-format.log; echo $? > ruff-format.exit) &
-          (uv run docformatter --check --recursive src/ tests/ 2>&1 | tee docformatter.log; echo $? > docformatter.exit) &
-
-          # Wait for all background jobs to complete
-          wait
-
-          # Check if any linter failed
-          RUFF_EXIT=$(cat ruff.exit)
-          RUFF_FORMAT_EXIT=$(cat ruff-format.exit)
-          DOCFORMATTER_EXIT=$(cat docformatter.exit)
-
-          # Store results for later steps
-          echo "ruff_failed=$RUFF_EXIT" >> $GITHUB_OUTPUT
-          echo "ruff_format_failed=$RUFF_FORMAT_EXIT" >> $GITHUB_OUTPUT
-          echo "docformatter_failed=$DOCFORMATTER_EXIT" >> $GITHUB_OUTPUT
-
-          # Exit with failure if any check failed, but continue to post comments
-          if [ "$RUFF_EXIT" -ne 0 ] || [ "$RUFF_FORMAT_EXIT" -ne 0 ] || [ "$DOCFORMATTER_EXIT" -ne 0 ]; then
-            exit 1
-          fi
+      - name: Run ruff linter
+        id: ruff
+        run: uv run ruff check . 2>&1 | tee ruff.log
         continue-on-error: true
 
-      - name: Post ruff results as PR comment
-        if: always() && steps.lint-checks.outputs.ruff_failed != '0' && github.event_name == 'pull_request'
+      - name: Post results as PR comment
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -87,8 +64,33 @@ jobs:
               });
             }
 
-      - name: Post ruff format results as PR comment
-        if: always() && steps.lint-checks.outputs.ruff_format_failed != '0' && github.event_name == 'pull_request'
+      - name: Fail if linting failed
+        if: steps.ruff.outcome == 'failure'
+        run: exit 1
+
+  ruff-format:
+    name: Ruff formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra transformers
+
+      - name: Run ruff formatter check
+        id: ruff-format
+        run: uv run ruff format --check . 2>&1 | tee ruff-format.log
+        continue-on-error: true
+
+      - name: Post results as PR comment
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -113,8 +115,33 @@ jobs:
               });
             }
 
-      - name: Post docformatter results as PR comment
-        if: always() && steps.lint-checks.outputs.docformatter_failed != '0' && github.event_name == 'pull_request'
+      - name: Fail if formatting failed
+        if: steps.ruff-format.outcome == 'failure'
+        run: exit 1
+
+  docformatter:
+    name: Docstring formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra transformers
+
+      - name: Run docformatter check
+        id: docformatter
+        run: uv run docformatter --check --recursive src/ tests/ 2>&1 | tee docformatter.log
+        continue-on-error: true
+
+      - name: Post results as PR comment
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -139,13 +166,8 @@ jobs:
               });
             }
 
-      - name: Fail if any linting check failed
-        if: |
-          always() && (
-            steps.lint-checks.outputs.ruff_failed != '0' ||
-            steps.lint-checks.outputs.ruff_format_failed != '0' ||
-            steps.lint-checks.outputs.docformatter_failed != '0'
-          )
+      - name: Fail if docformatter failed
+        if: steps.docformatter.outcome == 'failure'
         run: exit 1
 
   test:
