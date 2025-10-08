@@ -15,8 +15,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/viddexa/sahi"
-Source = "https://github.com/viddexa/sahi"
+Homepage = "https://github.com/viddexa/moderators"
+Source = "https://github.com/viddexa/moderators"
 "Bug Reports" = "https://github.com/viddexa/moderators/discussions/categories/q-a"
 Changelog = "https://github.com/viddexa/moderators/releases"
 
@@ -32,4 +32,4 @@ dev = [
 moderators = "moderators.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["moderators"]
+packages = ["src/moderators"]
