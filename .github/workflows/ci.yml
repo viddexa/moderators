@@ -35,7 +35,7 @@ jobs:
         continue-on-error: true
 
       - name: Post results as PR comment
-        if: failure() && github.event_name == 'pull_request'
+        if: steps.ruff.outcome == 'failure' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -90,7 +90,7 @@ jobs:
         continue-on-error: true
 
       - name: Post results as PR comment
-        if: failure() && github.event_name == 'pull_request'
+        if: steps.ruff-format.outcome == 'failure' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -137,11 +137,11 @@ jobs:
 
       - name: Run docformatter check
         id: docformatter
-        run: uv run docformatter --check --recursive src/ tests/ 2>&1 | tee docformatter.log
+        run: uv run docformatter --config pyproject.toml --check --recursive src/ tests/ 2>&1 | tee docformatter.log
         continue-on-error: true
 
       - name: Post results as PR comment
-        if: failure() && github.event_name == 'pull_request'
+        if: steps.docformatter.outcome == 'failure' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
