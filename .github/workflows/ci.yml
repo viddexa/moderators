@@ -1,0 +1,205 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  ruff-lint:
+    name: Ruff linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra transformers
+
+      - name: Run ruff linter
+        id: ruff
+        run: |
+          set -o pipefail
+          uv run ruff check . 2>&1 | tee ruff.log
+        continue-on-error: true
+
+      - name: Post results as PR comment
+        if: steps.ruff.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('ruff.log', 'utf8');
+            if (output.trim()) {
+              const body = '## ❌ Ruff Linting Issues\n\n' +
+                'The following linting issues were found:\n\n' +
+                '```\n' + output + '\n```\n\n' +
+                '### 🔧 How to fix:\n\n' +
+                '**Option 1: Auto-fix (recommended)**\n' +
+                '```bash\n' +
+                'uv run ruff check . --fix\n' +
+                '```\n\n' +
+                '**Option 2: Check only**\n' +
+                '```bash\n' +
+                'uv run ruff check .\n' +
+                '```\n\n' +
+                '💡 Most issues marked with `[*]` can be auto-fixed with the `--fix` flag.';
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+      - name: Fail if linting failed
+        if: steps.ruff.outcome == 'failure'
+        run: exit 1
+
+  ruff-format:
+    name: Ruff formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra transformers
+
+      - name: Run ruff formatter check
+        id: ruff-format
+        run: |
+          set -o pipefail
+          uv run ruff format --check . 2>&1 | tee ruff-format.log
+        continue-on-error: true
+
+      - name: Post results as PR comment
+        if: steps.ruff-format.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('ruff-format.log', 'utf8');
+            if (output.trim()) {
+              const body = '## ❌ Ruff Formatting Issues\n\n' +
+                'The following formatting issues were found:\n\n' +
+                '```\n' + output + '\n```\n\n' +
+                '### 🔧 How to fix:\n\n' +
+                '**Auto-format your code:**\n' +
+                '```bash\n' +
+                'uv run ruff format .\n' +
+                '```\n\n' +
+                'This will automatically format all Python files to match the project style.';
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+      - name: Fail if formatting failed
+        if: steps.ruff-format.outcome == 'failure'
+        run: exit 1
+
+  docformatter:
+    name: Docstring formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra transformers
+
+      - name: Run docformatter check
+        id: docformatter
+        run: |
+          set -o pipefail
+          uv run docformatter --config pyproject.toml --check --recursive src/ tests/ 2>&1 | tee docformatter.log
+        continue-on-error: true
+
+      - name: Post results as PR comment
+        if: steps.docformatter.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('docformatter.log', 'utf8');
+            if (output.trim()) {
+              const body = '## ❌ Docformatter Issues\n\n' +
+                'The following docstring formatting issues were found:\n\n' +
+                '```\n' + output + '\n```\n\n' +
+                '### 🔧 How to fix:\n\n' +
+                '**Auto-format docstrings:**\n' +
+                '```bash\n' +
+                'uv run docformatter --in-place --recursive src/ tests/\n' +
+                '```\n\n' +
+                'This will automatically format all docstrings to follow PEP 257 conventions.';
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+      - name: Fail if docformatter failed
+        if: steps.docformatter.outcome == 'failure'
+        run: exit 1
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra transformers
+
+      - name: Run tests in parallel
+        run: uv run pytest -n auto --junitxml=pytest-results.xml tests/
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: pytest-results.xml
+          comment_mode: failures
+          check_name: Test Results

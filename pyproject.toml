@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "moderators"
+dynamic = ["version"]
+description = "Moderators: One package to moderate them all"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Moderators Team" }]
+dependencies = [
+  "huggingface-hub>=0.22",
+  "requests"
+]
+
+[project.urls]
+Homepage = "https://github.com/viddexa/moderators"
+Source = "https://github.com/viddexa/moderators"
+"Bug Reports" = "https://github.com/viddexa/moderators/discussions/categories/q-a"
+Changelog = "https://github.com/viddexa/moderators/releases"
+
+[project.optional-dependencies]
+transformers = ["transformers>=4.36"]
+dev = [
+  "pytest>=7.0",
+  "pytest-xdist",
+  "pillow>=9.0",
+  "ruff",
+  "docformatter",
+  "torch"
+]
+
+[project.scripts]
+moderators = "moderators.cli:main"
+
+[tool.hatch.version]
+path = "src/moderators/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/moderators"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+extend-select = ["I", "D", "UP"]
+ignore = [
+    "D100",  # Missing docstring in public module
+    "D104",  # Missing docstring in public package
+    "D203",  # 1 blank line required before class docstring
+    "D205",  # 1 blank line required between summary line and description
+    "D212",  # Multi-line docstring summary should start at the first line
+    "D213",  # Multi-line docstring summary should start at the second line
+    "D401",  # First line should be in imperative mood
+    "D406",  # Section name should end with a newline
+    "D407",  # Missing dashed underline after section
+    "D413",  # Missing blank line after last section
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D103"]  # Missing docstring in public function (tests don't need docstrings)
+
+[tool.docformatter]
+wrap-summaries = 120
+wrap-descriptions = 120
+pre-summary-newline = true
+close-quotes-on-newline = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
