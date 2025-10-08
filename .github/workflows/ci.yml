@@ -65,11 +65,25 @@ jobs:
             const fs = require('fs');
             const output = fs.readFileSync('ruff.log', 'utf8');
             if (output.trim()) {
+              const body = '## ❌ Ruff Linting Issues\n\n' +
+                'The following linting issues were found:\n\n' +
+                '```\n' + output + '\n```\n\n' +
+                '### 🔧 How to fix:\n\n' +
+                '**Option 1: Auto-fix (recommended)**\n' +
+                '```bash\n' +
+                'uv run ruff check . --fix\n' +
+                '```\n\n' +
+                '**Option 2: Check only**\n' +
+                '```bash\n' +
+                'uv run ruff check .\n' +
+                '```\n\n' +
+                '💡 Most issues marked with `[*]` can be auto-fixed with the `--fix` flag.';
+
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '## Ruff Linting Issues\n\n```\n' + output + '\n```'
+                body: body
               });
             }
 
@@ -81,11 +95,21 @@ jobs:
             const fs = require('fs');
             const output = fs.readFileSync('ruff-format.log', 'utf8');
             if (output.trim()) {
+              const body = '## ❌ Ruff Formatting Issues\n\n' +
+                'The following formatting issues were found:\n\n' +
+                '```\n' + output + '\n```\n\n' +
+                '### 🔧 How to fix:\n\n' +
+                '**Auto-format your code:**\n' +
+                '```bash\n' +
+                'uv run ruff format .\n' +
+                '```\n\n' +
+                'This will automatically format all Python files to match the project style.';
+
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '## Ruff Formatting Issues\n\n```\n' + output + '\n```'
+                body: body
               });
             }
 
@@ -97,16 +121,31 @@ jobs:
             const fs = require('fs');
             const output = fs.readFileSync('docformatter.log', 'utf8');
             if (output.trim()) {
+              const body = '## ❌ Docformatter Issues\n\n' +
+                'The following docstring formatting issues were found:\n\n' +
+                '```\n' + output + '\n```\n\n' +
+                '### 🔧 How to fix:\n\n' +
+                '**Auto-format docstrings:**\n' +
+                '```bash\n' +
+                'uv run docformatter --in-place --recursive src/ tests/\n' +
+                '```\n\n' +
+                'This will automatically format all docstrings to follow PEP 257 conventions.';
+
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '## Docformatter Issues\n\n```\n' + output + '\n```'
+                body: body
               });
             }
 
       - name: Fail if any linting check failed
-        if: steps.lint-checks.outcome == 'failure'
+        if: |
+          always() && (
+            steps.lint-checks.outputs.ruff_failed != '0' ||
+            steps.lint-checks.outputs.ruff_format_failed != '0' ||
+            steps.lint-checks.outputs.docformatter_failed != '0'
+          )
         run: exit 1
 
   test:
