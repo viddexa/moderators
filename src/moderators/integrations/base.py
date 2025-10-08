@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List
 from abc import ABC, abstractmethod  # added
+from dataclasses import dataclass, field
+from typing import Any
 
 from huggingface_hub import ModelHubMixin
 
@@ -10,7 +10,7 @@ from huggingface_hub import ModelHubMixin
 @dataclass
 class Box:
     # xyxy: [x1, y1, x2, y2]
-    xyxy: List[float]
+    xyxy: list[float]
     label: str
     score: float
 
@@ -20,16 +20,16 @@ class PredictionResult:
     # Context about the source (file path, URL, etc.)
     source_path: str = ""
     # Probability map for classification
-    classifications: Dict[str, float] = field(default_factory=dict)
+    classifications: dict[str, float] = field(default_factory=dict)
     # Detection results
-    detections: List[Box] = field(default_factory=list)
+    detections: list[Box] = field(default_factory=list)
     # Raw output specific to models/integrations
     raw_output: Any = None
 
 
 class BaseModerator(ABC, ModelHubMixin):
-    def __init__(self, config: Dict[str, Any], model_id: str, **kwargs: Any) -> None:
-        self.config: Dict[str, Any] = dict(config or {})
+    def __init__(self, config: dict[str, Any], model_id: str, **kwargs: Any) -> None:
+        self.config: dict[str, Any] = dict(config or {})
         self.model_id: str = model_id
         self.config.setdefault("model_id", self.model_id)
         self.callbacks = self.get_default_callbacks()
@@ -65,13 +65,11 @@ class BaseModerator(ABC, ModelHubMixin):
 
     @abstractmethod
     def save_pretrained(self, save_directory: str, **kwargs: Any) -> str:
-        """
-        Save model and any processors to the given directory.
-        """
+        """Save model and any processors to the given directory."""
         raise NotImplementedError
 
     # Callback system (simple MVP)
-    def get_default_callbacks(self) -> Dict[str, List]:
+    def get_default_callbacks(self) -> dict[str, list]:
         from moderators.utils.callbacks import DEFAULT_CALLBACKS
 
         return {k: list(v) for k, v in DEFAULT_CALLBACKS.items()}

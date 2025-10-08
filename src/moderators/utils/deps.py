@@ -4,10 +4,10 @@ import os
 import shutil
 import subprocess
 import sys
-from typing import Callable, List
+from collections.abc import Callable
 
 
-def auto_install(packages: List[str]) -> bool:
+def auto_install(packages: list[str]) -> bool:
     """
     Try to auto-install required packages using 'uv' if available, otherwise fall back to 'pip'.
     Controlled by env var: MODERATORS_DISABLE_AUTO_INSTALL=1 to disable.
@@ -25,7 +25,7 @@ def auto_install(packages: List[str]) -> bool:
         return False
 
 
-def ensure_transformers(install_fn: Callable[[List[str]], bool]):
+def ensure_transformers(install_fn: Callable[[list[str]], bool]):
     """Ensure 'transformers' is importable; optionally auto-install and retry."""
     try:
         import transformers as _transformers  # noqa: F401
@@ -37,7 +37,7 @@ def ensure_transformers(install_fn: Callable[[List[str]], bool]):
         return _transformers
 
 
-def ensure_dl_framework(install_fn: Callable[[List[str]], bool]) -> str:
+def ensure_dl_framework(install_fn: Callable[[list[str]], bool]) -> str:
     """
     Ensure at least one DL framework is available.
     Preference: PyTorch ('pt'), TensorFlow ('tf'), JAX/Flax ('flax').
@@ -69,7 +69,7 @@ def ensure_dl_framework(install_fn: Callable[[List[str]], bool]) -> str:
     )
 
 
-def ensure_pillow_for_task(task: str, install_fn: Callable[[List[str]], bool]) -> None:
+def ensure_pillow_for_task(task: str, install_fn: Callable[[list[str]], bool]) -> None:
     """For image tasks, ensure Pillow is available; auto-install if missing."""
     if "image" not in str(task).lower():
         return

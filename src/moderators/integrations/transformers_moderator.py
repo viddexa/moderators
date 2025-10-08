@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
-from .base import BaseModerator, PredictionResult
 from moderators.utils import (
     auto_install,
-    ensure_transformers,
     ensure_dl_framework,
     ensure_pillow_for_task,
+    ensure_transformers,
     preprocess_image_input,
 )
+
+from .base import BaseModerator, PredictionResult
 
 
 class TransformersModerator(BaseModerator):
@@ -124,15 +125,15 @@ class TransformersModerator(BaseModerator):
     def _predict(self, processed_inputs: Any) -> Any:
         return self._pipe(processed_inputs)
 
-    def _postprocess(self, model_outputs: Any) -> List[PredictionResult]:
+    def _postprocess(self, model_outputs: Any) -> list[PredictionResult]:
         # Pipelines typically return dict or list[dict]
         outputs = model_outputs
         if isinstance(outputs, dict):
             outputs = [outputs]
 
-        results: List[PredictionResult] = []
+        results: list[PredictionResult] = []
         for out in outputs:
-            classifications: Dict[str, float] = {}
+            classifications: dict[str, float] = {}
             label = out.get("label")
             score = out.get("score")
             if label is not None and score is not None:

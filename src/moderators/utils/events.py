@@ -5,14 +5,14 @@ import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
 
 
 def _robust_post_request(
     url: str,
-    json_data: Dict[str, Any],
+    json_data: dict[str, Any],
     retries: int = 3,
     initial_wait: float = 1.0,
     timeout: int = 5,
@@ -23,7 +23,7 @@ def _robust_post_request(
 
     Args:
         url (str): The URL to send the request to.
-        json_data (Dict[str, Any]): The JSON data to send.
+        json_data (dict[str, Any]): The JSON data to send.
         retries (int): The maximum number of retries for a failed request.
         initial_wait (float): The initial wait time between retries in seconds.
         timeout (int): The timeout for each individual request in seconds.
@@ -55,7 +55,7 @@ def _settings_path() -> Path:
     return base / "settings.json"
 
 
-def _read_settings() -> Dict[str, Any]:
+def _read_settings() -> dict[str, Any]:
     path = _settings_path()
     if not path.exists():
         return {"sync": True}
@@ -75,13 +75,13 @@ class Events:
         self.url = (
             "https://www.google-analytics.com/mp/collect?measurement_id=G-XDJCD0WJDW&api_secret=xgz_lUC6SK-u4-EDAUFcFg"
         )
-        self.events: List[Dict[str, Any]] = []
+        self.events: list[dict[str, Any]] = []
         self.rate_limit_seconds = 30.0
         self.last_sent_ts = 0.0
         self.metadata = self._get_metadata()
         self.enabled = self._is_enabled()
 
-    def __call__(self, cfg: Dict[str, Any]) -> None:
+    def __call__(self, cfg: dict[str, Any]) -> None:
         if not self.enabled:
             return
         if len(self.events) > 25:
@@ -111,7 +111,7 @@ class Events:
             target=self._make_request, args=(data_payload,), daemon=True
         ).start()
 
-    def _make_request(self, json_data: Dict[str, Any]) -> None:
+    def _make_request(self, json_data: dict[str, Any]) -> None:
         """
         Makes a robust network request to send analytics data.
         This method now uses a helper function with retry logic.
@@ -119,7 +119,7 @@ class Events:
         # We are now using the more robust helper function.
         _robust_post_request(self.url, json_data)
 
-    def _get_metadata(self) -> Dict[str, Any]:
+    def _get_metadata(self) -> dict[str, Any]:
         user_id = self._get_or_create_user_id()
         return {
             "user_id": user_id,

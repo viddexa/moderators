@@ -13,17 +13,15 @@ from __future__ import annotations
 import importlib
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # We import BaseModerator only for type hinting.
 # This avoids potential circular dependency issues.
 from .integrations.base import BaseModerator
 
 
-def _load_config(identifier: str, *, local_files_only: bool = False) -> Dict[str, Any]:
-    """
-    Loads a config.json file from a local path or the Hugging Face Hub.
-    """
+def _load_config(identifier: str, *, local_files_only: bool = False) -> dict[str, Any]:
+    """Loads a config.json file from a local path or the Hugging Face Hub."""
     p = Path(identifier)
     if p.is_dir():
         cfg_path = p / "config.json"
@@ -43,10 +41,8 @@ def _load_config(identifier: str, *, local_files_only: bool = False) -> Dict[str
     return json.loads(Path(cfg_fp).read_text(encoding="utf-8"))
 
 
-def _is_transformers_cfg(cfg: Dict[str, Any]) -> bool:
-    """
-    Checks if the given configuration belongs to a Transformers model.
-    """
+def _is_transformers_cfg(cfg: dict[str, Any]) -> bool:
+    """Checks if the given configuration belongs to a Transformers model."""
     # The `architectures` key alone is not enough; we confirm with other signatures.
     has_tf_sig = any(
         k in cfg for k in ("transformers_version", "model_type", "id2label", "label2id")
@@ -55,10 +51,8 @@ def _is_transformers_cfg(cfg: Dict[str, Any]) -> bool:
     return has_arch_list and has_tf_sig
 
 
-def _infer_task(cfg: Dict[str, Any]) -> Optional[str]:
-    """
-    Attempts to infer the model's task by inspecting its architecture or problem_type.
-    """
+def _infer_task(cfg: dict[str, Any]) -> str | None:
+    """Attempts to infer the model's task by inspecting its architecture or problem_type."""
     archs = [str(a).lower() for a in cfg.get("architectures", [])]
     if any("classification" in a for a in archs):
         return "image-classification"
@@ -81,7 +75,7 @@ class AutoModerator:
 
     def __init__(self, *args, **kwargs) -> None:
         """AutoModerator cannot be instantiated directly."""
-        raise EnvironmentError(
+        raise OSError(
             "AutoModerator is a factory class and cannot be instantiated directly. "
             "Please use the `AutoModerator.from_pretrained('model_id')` method."
         )
@@ -90,7 +84,7 @@ class AutoModerator:
     def from_pretrained(
             cls,
             model_id: str,
-            config: Optional[dict] = None,
+            config: dict | None = None,
             local_files_only: bool = False,
             **kwargs: Any,
     ) -> BaseModerator:
