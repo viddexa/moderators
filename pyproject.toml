@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "moderators"
-version = "0.1.0"
-description = "Moderators: ModelHubMixin-based factory and core skeleton (Phase 1)."
+version = "0.0.1"
+description = "Moderators: One package to moderate them all"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [{ name = "Moderators Team" }]
 dependencies = [
   "huggingface-hub>=0.22",
