@@ -24,6 +24,7 @@ Changelog = "https://github.com/viddexa/moderators/releases"
 transformers = ["transformers>=4.36"]
 dev = [
   "pytest>=7.0",
+  "pytest-xdist",
   "pillow>=9.0",
   "ruff",
   "docformatter",
