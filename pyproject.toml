@@ -24,7 +24,8 @@ Changelog = "https://github.com/viddexa/moderators/releases"
 transformers = ["transformers>=4.36"]
 dev = [
   "pytest>=7.0",
-  "Pillow>=9.0"
+  "pillow>=9.0",
+  "ruff"
 ]
 
 [project.scripts]
