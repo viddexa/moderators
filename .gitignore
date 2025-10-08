@@ -211,3 +211,6 @@ uv.lock
 
 # ai-agents
 .mcp.json
+
+# vscode
+.vscode/
