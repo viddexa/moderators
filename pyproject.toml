@@ -26,7 +26,8 @@ dev = [
   "pytest>=7.0",
   "pillow>=9.0",
   "ruff",
-  "docformatter"
+  "docformatter",
+  "torch"
 ]
 
 [project.scripts]
@@ -65,3 +66,11 @@ wrap-summaries = 120
 wrap-descriptions = 120
 pre-summary-newline = true
 close-quotes-on-newline = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
