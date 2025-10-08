@@ -86,7 +86,7 @@ class AutoModerator:
         """
         Loads the appropriate moderator from a model ID on the Hub or a local path.
 
-        This method reads the `config.json` file, determines the model's architecture, 
+        This method reads the `config.json` file, determines the model's architecture,
         dynamically loads the corresponding moderator class, and returns an initialized instance of it.
 
         Args:
