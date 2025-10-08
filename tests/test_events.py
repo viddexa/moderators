@@ -41,8 +41,10 @@ def test_events_sends_payload_via_requests_post(tmp_path, monkeypatch):
 
     def fake_post(url, json=None, timeout=None, **kwargs):
         calls.setdefault("posts", []).append({"url": url, "json": json, "timeout": timeout})
+
         class _Resp:
             status_code = 200
+
         return _Resp()
 
     # Patch requests.post.
@@ -83,8 +85,10 @@ def test_robust_post_request_retries_and_success(tmp_path, monkeypatch):
 
     def fake_post(url, json=None, timeout=None, **kwargs):
         call_count["n"] += 1
+
         class _Resp:
             status_code = 500 if call_count["n"] < 3 else 200
+
         return _Resp()
 
     monkeypatch.setattr(events.requests, "post", fake_post, raising=True)
@@ -109,8 +113,10 @@ def test_robust_post_request_no_retry_on_4xx(tmp_path, monkeypatch):
 
     def fake_post(url, json=None, timeout=None, **kwargs):
         call_count["n"] += 1
+
         class _Resp:
             status_code = 400
+
         return _Resp()
 
     monkeypatch.setattr(events.requests, "post", fake_post, raising=True)
@@ -135,8 +141,10 @@ def test_callbacks_integration_triggers_event_and_rate_limit(tmp_path, monkeypat
 
     def fake_post(url, json=None, timeout=None, **kwargs):
         calls["n"] += 1
+
         class _Resp:
             status_code = 200
+
         return _Resp()
 
     monkeypatch.setattr(events.requests, "post", fake_post, raising=True)

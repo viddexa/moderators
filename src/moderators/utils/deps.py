@@ -30,11 +30,13 @@ def ensure_transformers(install_fn: Callable[[list[str]], bool]):
     """Ensure 'transformers' is importable; optionally auto-install and retry."""
     try:
         import transformers as _transformers  # noqa: F401
+
         return _transformers
     except Exception:
         if not install_fn(["transformers"]):
             raise
         import transformers as _transformers  # type: ignore
+
         return _transformers
 
 
@@ -47,27 +49,30 @@ def ensure_dl_framework(install_fn: Callable[[list[str]], bool]) -> str:
     """
     try:
         import torch  # noqa: F401
+
         return "pt"
     except Exception:
         if install_fn(["torch"]):
             try:
                 import torch  # noqa: F401
+
                 return "pt"
             except Exception:
                 pass
     try:
         import tensorflow  # noqa: F401
+
         return "tf"
     except Exception:
         pass
     try:
         import jax  # noqa: F401
+
         return "flax"
     except Exception:
         pass
     raise ImportError(
-        "A deep learning framework is required for transformers pipelines. "
-        "Install PyTorch with: uv pip install torch"
+        "A deep learning framework is required for transformers pipelines. Install PyTorch with: uv pip install torch"
     )
 
 

@@ -7,6 +7,7 @@ from moderators.auto_model import AutoModerator
 class _FakeTempDir:
     def __init__(self, prefix: str = "moderators_push_"):
         import tempfile
+
         self.name = tempfile.mkdtemp(prefix=prefix)
 
     def __enter__(self):
@@ -43,6 +44,7 @@ def test_push_to_hub_offline(tmp_path, monkeypatch, fake_transformers):
                 "exist_ok": exist_ok,
             }
             from types import SimpleNamespace
+
             return SimpleNamespace(repo_id=repo_id)
 
         def upload_folder(self, repo_id, repo_type, folder_path, commit_message=None, token=None, **kw):

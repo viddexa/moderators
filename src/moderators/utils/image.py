@@ -54,5 +54,5 @@ def preprocess_image_input(inputs: Any, min_side: int = 0) -> Any:
         return img
 
     if isinstance(inputs, (list, tuple)):
-        return [ _process(x) for x in inputs ]
+        return [_process(x) for x in inputs]
     return _process(inputs)

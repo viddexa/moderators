@@ -15,6 +15,7 @@ if str(SRC_DIR) not in sys.path:
 def fake_transformers(monkeypatch):
     """
     Replace 'from transformers import pipeline' with a fake pipeline.
+
     Allows testing AutoModerator.load_model flow without any network/download.
     """
     mod = types.ModuleType("transformers")
@@ -23,6 +24,7 @@ def fake_transformers(monkeypatch):
         def runner(inputs):
             # Produce a simple deterministic output
             return {"label": "OK", "score": 0.9}
+
         return runner
 
     mod.pipeline = fake_pipeline

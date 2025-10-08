@@ -116,9 +116,7 @@ class Events:
         data_payload = {"client_id": self.metadata["user_id"], "events": self.events}
         self.events = []
         self.last_sent_ts = time.time()
-        threading.Thread(
-            target=self._make_request, args=(data_payload,), daemon=True
-        ).start()
+        threading.Thread(target=self._make_request, args=(data_payload,), daemon=True).start()
 
     def _make_request(self, json_data: dict[str, Any]) -> None:
         """

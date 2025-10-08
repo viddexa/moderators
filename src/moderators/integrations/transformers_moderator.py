@@ -116,7 +116,6 @@ class TransformersModerator(BaseModerator):
             **pipe_kwargs,
         )
 
-
     def _preprocess(self, inputs: Any) -> Any:
         task = str(self.config.get("task", "")).lower()
         if "image" in task:
@@ -167,9 +166,9 @@ class TransformersModerator(BaseModerator):
         vision_processor = None
         if pipe is not None:
             vision_processor = (
-                    getattr(pipe, "processor", None)
-                    or getattr(pipe, "image_processor", None)
-                    or getattr(pipe, "feature_extractor", None)
+                getattr(pipe, "processor", None)
+                or getattr(pipe, "image_processor", None)
+                or getattr(pipe, "feature_extractor", None)
             )
 
         if model and hasattr(model, "save_pretrained"):

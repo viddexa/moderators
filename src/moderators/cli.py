@@ -20,8 +20,7 @@ def main():
     parser = argparse.ArgumentParser(prog="moderators", description="Moderators CLI")
     parser.add_argument("model", nargs="?", help="Local model folder or HF model id")
     parser.add_argument("input", nargs="?", help="Input text or file path")
-    parser.add_argument("--local-files-only", action="store_true", dest="local_files_only",
-                        help="Use only local files")
+    parser.add_argument("--local-files-only", action="store_true", dest="local_files_only", help="Use only local files")
     args = parser.parse_args()
 
     if not args.model:
@@ -34,6 +33,7 @@ def main():
         print(json.dumps([_to_jsonable(x) for x in out], ensure_ascii=False, indent=2))
     else:
         print("Model loaded. Provide the 'input' argument to run inference.")
+
 
 if __name__ == "__main__":
     main()

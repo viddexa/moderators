@@ -123,7 +123,6 @@ class BaseModerator(ABC, ModelHubMixin):
 
         return {k: list(v) for k, v in DEFAULT_CALLBACKS.items()}
 
-
     def run_callbacks(self, event_name: str) -> None:
         """
         Execute all callbacks for a given event.

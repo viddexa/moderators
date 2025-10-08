@@ -51,7 +51,9 @@ def benchmark(model_id: str, image_path: str, warmup: int = 2, repeats: int = 10
     stats = summarize(times)
     print(f"Model: {model_id}")
     print(f"Backend: {backend or 'auto'}")
-    print(f"Runs: {repeats}, avg: {stats['avg_ms']:.2f} ms, p50: {stats['p50_ms']:.2f} ms, p90: {stats['p90_ms']:.2f} ms")
+    print(
+        f"Runs: {repeats}, avg: {stats['avg_ms']:.2f} ms, p50: {stats['p50_ms']:.2f} ms, p90: {stats['p90_ms']:.2f} ms"
+    )
 
 
 def main() -> None:
@@ -68,4 +70,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

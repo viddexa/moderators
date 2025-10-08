@@ -42,9 +42,7 @@ def _load_config(identifier: str, *, local_files_only: bool = False) -> dict[str
 def _is_transformers_cfg(cfg: dict[str, Any]) -> bool:
     """Checks if the given configuration belongs to a Transformers model."""
     # The `architectures` key alone is not enough; we confirm with other signatures.
-    has_tf_sig = any(
-        k in cfg for k in ("transformers_version", "model_type", "id2label", "label2id")
-    )
+    has_tf_sig = any(k in cfg for k in ("transformers_version", "model_type", "id2label", "label2id"))
     has_arch_list = isinstance(cfg.get("architectures"), list)
     return has_arch_list and has_tf_sig
 
@@ -80,11 +78,11 @@ class AutoModerator:
 
     @classmethod
     def from_pretrained(
-            cls,
-            model_id: str,
-            config: dict | None = None,
-            local_files_only: bool = False,
-            **kwargs: Any,
+        cls,
+        model_id: str,
+        config: dict | None = None,
+        local_files_only: bool = False,
+        **kwargs: Any,
     ) -> BaseModerator:
         """
         Loads the appropriate moderator from a model ID on the Hub or a local path.

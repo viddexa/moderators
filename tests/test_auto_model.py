@@ -88,6 +88,7 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
     # If HF Hub is offline, skip
     try:
         from huggingface_hub.utils import is_offline_mode
+
         if is_offline_mode():
             pytest.skip("HF Hub is in offline mode; skipping integration test.")
     except Exception:
@@ -95,6 +96,7 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
 
     # Allow disabling auto-install via env for CI environments
     import os
+
     if str(os.environ.get("MODERATORS_DISABLE_AUTO_INSTALL", "")).lower() in ("1", "true", "yes"):
         pytest.skip("Auto-install disabled; skipping online integration test.")
 
@@ -103,9 +105,7 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
     assert isinstance(mod, TransformersModerator)
 
     # Prepare a tiny 1x1 PNG (red pixel) without requiring Pillow in the test
-    png_b64 = (
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
-    )
+    png_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
     img_path = tmp_path / "tiny.png"
     img_path.write_bytes(base64.b64decode(png_b64))
 
@@ -114,4 +114,3 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
     first = out[0]
     assert isinstance(first, PredictionResult)
     assert isinstance(first.classifications, dict) and len(first.classifications) >= 1
-
