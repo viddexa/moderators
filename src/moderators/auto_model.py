@@ -1,11 +1,9 @@
 # auto_model.py
-
 """
 AutoModerator Factory.
 
-This module contains the AutoModerator class, a factory that automatically
-selects and initializes the correct moderator class based on a model identifier
-from the Hugging Face Hub.
+This module contains the AutoModerator class, a factory that automatically selects and initializes the correct moderator
+class based on a model identifier from the Hugging Face Hub.
 """
 
 from __future__ import annotations

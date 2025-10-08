@@ -1,6 +1,12 @@
 from moderators.utils.events import events
 
+
 def on_predict_start(predictor):
+    """
+    Callback executed before prediction starts.
+
+    Enqueues analytics event with task and model_id information.
+    """
     # Add analytics event
     try:
         cfg = {
@@ -14,6 +20,7 @@ def on_predict_start(predictor):
 
 
 def on_predict_end(predictor):
+    """Callback executed after prediction ends."""
     pass
 
 

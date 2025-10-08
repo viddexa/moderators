@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Any
+
 
 def preprocess_image_input(inputs: Any, min_side: int = 0) -> Any:
     """
     Preprocesses image inputs from Path, PIL Image, or a list/tuple (batch).
+
     - Opens the image if the input is a path.
     - Converts the image to RGB.
     - (Optional) If min_side > 0, proportionally scales up small images.

@@ -8,8 +8,8 @@ def _reload_analytics_and_callbacks(monkeypatch, tmp_path):
     # Do not clear the env; tests can set it themselves if needed.
 
     # Reload modules in a clean environment.
-    import moderators.utils.events as events
     import moderators.utils.callbacks as callbacks
+    import moderators.utils.events as events
 
     importlib.reload(events)
     importlib.reload(callbacks)

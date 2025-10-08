@@ -18,8 +18,8 @@ def _robust_post_request(
     timeout: int = 5,
 ) -> None:
     """
-    Sends a POST request with JSON data to a URL, with retries on transient
-    errors using an exponential backoff strategy.
+    Sends a POST request with JSON data to a URL, with retries on transient errors using an exponential backoff
+    strategy.
 
     Args:
         url (str): The URL to send the request to.
@@ -68,10 +68,12 @@ def _read_settings() -> dict[str, Any]:
 class Events:
     """
     Handles the collection and transmission of anonymous usage analytics.
+
     Implemented as a queue with background sending and rate limiting.
     """
 
     def __init__(self) -> None:
+        """Initialize the Events analytics handler."""
         self.url = (
             "https://www.google-analytics.com/mp/collect?measurement_id=G-XDJCD0WJDW&api_secret=xgz_lUC6SK-u4-EDAUFcFg"
         )
@@ -82,6 +84,12 @@ class Events:
         self.enabled = self._is_enabled()
 
     def __call__(self, cfg: dict[str, Any]) -> None:
+        """
+        Enqueue an analytics event.
+
+        Args:
+            cfg: Configuration dictionary containing task and model_id
+        """
         if not self.enabled:
             return
         if len(self.events) > 25:
@@ -101,6 +109,7 @@ class Events:
             self.send_events()
 
     def send_events(self) -> None:
+        """Send queued analytics events in a background thread."""
         if not self.events:
             return
 
@@ -114,6 +123,7 @@ class Events:
     def _make_request(self, json_data: dict[str, Any]) -> None:
         """
         Makes a robust network request to send analytics data.
+
         This method now uses a helper function with retry logic.
         """
         # We are now using the more robust helper function.

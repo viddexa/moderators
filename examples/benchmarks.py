@@ -1,11 +1,22 @@
+from __future__ import annotations
+
 import argparse
 import statistics
 import time
-from typing import Dict, List, Optional
+
 from moderators.auto_model import AutoModerator
 
 
-def summarize(times: List[float]) -> Dict[str, float]:
+def summarize(times: list[float]) -> dict[str, float]:
+    """
+    Calculate timing statistics.
+
+    Args:
+        times: List of timing measurements in seconds
+
+    Returns:
+        Dictionary with average, p50, and p90 timings in milliseconds
+    """
     times_sorted = sorted(times)
     return {
         "avg_ms": statistics.mean(times) * 1000.0,
@@ -14,14 +25,24 @@ def summarize(times: List[float]) -> Dict[str, float]:
     }
 
 
-def benchmark(model_id: str, image_path: str, warmup: int = 2, repeats: int = 10, backend: Optional[str] = None) -> None:
+def benchmark(model_id: str, image_path: str, warmup: int = 2, repeats: int = 10, backend: str | None = None) -> None:
+    """
+    Run performance benchmark for a model.
+
+    Args:
+        model_id: Model identifier (HuggingFace Hub ID or local path)
+        image_path: Path to test image
+        warmup: Number of warmup runs before benchmarking
+        repeats: Number of benchmark iterations
+        backend: Optional backend specification (e.g., 'onnx')
+    """
     kwargs = {"backend": backend} if backend else {}
     model = AutoModerator.from_pretrained(model_id, **kwargs)
     # warmup
     for _ in range(warmup):
         model(image_path)
 
-    times: List[float] = []
+    times: list[float] = []
     for _ in range(repeats):
         t0 = time.perf_counter()
         model(image_path)
@@ -34,6 +55,7 @@ def benchmark(model_id: str, image_path: str, warmup: int = 2, repeats: int = 10
 
 
 def main() -> None:
+    """Run the benchmark CLI."""
     parser = argparse.ArgumentParser(description="Moderators Benchmark")
     parser.add_argument("model_id", help="Hub model id")
     parser.add_argument("image", help="Path to image")

@@ -16,6 +16,7 @@ from .base import BaseModerator, PredictionResult
 
 
 class TransformersModerator(BaseModerator):
+    """Moderator implementation using HuggingFace Transformers."""
 
     def load_model(self) -> None:
         """
@@ -150,9 +151,8 @@ class TransformersModerator(BaseModerator):
         return results
 
     def save_pretrained(self, save_directory: str, **kwargs: Any) -> str:
-        """
-        Saves model + tokenizer + (processor / image_processor / feature_extractor) and
-        refreshes/creates a config.json with required moderator metadata.
+        """Saves model + tokenizer + (processor / image_processor / feature_extractor) and refreshes/creates a
+        config.json with required moderator metadata.
         """
         out_dir = Path(save_directory)
         out_dir.mkdir(parents=True, exist_ok=True)

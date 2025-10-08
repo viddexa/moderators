@@ -10,6 +10,7 @@ from collections.abc import Callable
 def auto_install(packages: list[str]) -> bool:
     """
     Try to auto-install required packages using 'uv' if available, otherwise fall back to 'pip'.
+
     Controlled by env var: MODERATORS_DISABLE_AUTO_INSTALL=1 to disable.
     """
     if str(os.environ.get("MODERATORS_DISABLE_AUTO_INSTALL", "")).lower() in ("1", "true", "yes"):
@@ -40,6 +41,7 @@ def ensure_transformers(install_fn: Callable[[list[str]], bool]):
 def ensure_dl_framework(install_fn: Callable[[list[str]], bool]) -> str:
     """
     Ensure at least one DL framework is available.
+
     Preference: PyTorch ('pt'), TensorFlow ('tf'), JAX/Flax ('flax').
     Tries to auto-install torch first.
     """

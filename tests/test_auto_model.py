@@ -1,11 +1,12 @@
+import base64
 import json
 from pathlib import Path
+
 import pytest
-import base64
 
 from moderators.auto_model import AutoModerator
-from moderators.integrations.transformers_moderator import TransformersModerator
 from moderators.integrations.base import PredictionResult
+from moderators.integrations.transformers_moderator import TransformersModerator
 
 
 def write_config(tmp_path: Path, data: dict) -> Path:

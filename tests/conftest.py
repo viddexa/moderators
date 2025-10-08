@@ -1,6 +1,7 @@
 import sys
-from pathlib import Path
 import types
+from pathlib import Path
+
 import pytest
 
 # Add the src directory to sys.path so tests can import the package without an editable install.

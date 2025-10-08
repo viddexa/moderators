@@ -57,6 +57,9 @@ ignore = [
     "D413",  # Missing blank line after last section
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D103"]  # Missing docstring in public function (tests don't need docstrings)
+
 [tool.docformatter]
 wrap-summaries = 120
 wrap-descriptions = 120

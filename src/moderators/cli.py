@@ -2,16 +2,21 @@
 import argparse
 import json
 from dataclasses import asdict, is_dataclass
+
 from moderators.auto_model import AutoModerator
 
+
 def _to_jsonable(obj):
+    """Convert objects to JSON-serializable format."""
     if is_dataclass(obj):
         return asdict(obj)
     if isinstance(obj, (list, dict, str, int, float)) or obj is None:
         return obj
     return str(obj)
 
+
 def main():
+    """Run the moderators CLI."""
     parser = argparse.ArgumentParser(prog="moderators", description="Moderators CLI")
     parser.add_argument("model", nargs="?", help="Local model folder or HF model id")
     parser.add_argument("input", nargs="?", help="Input text or file path")
