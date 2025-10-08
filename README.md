@@ -1,5 +1,7 @@
 # Moderators
 
+[![CI](https://github.com/viddexa/moderators/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/viddexa/moderators/actions/workflows/ci.yml)
+
 # TODO: refactor readme to target users instead of maintainers
 
 This repository provides an extensible core skeleton for content moderation. Phase 1 includes:
