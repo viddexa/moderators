@@ -110,7 +110,7 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
     img_path.write_bytes(base64.b64decode(png_b64))
 
     out = mod(str(img_path))
-    assert isinstance(out, list) and len(out) == 0 # TODO: revert to >= 1
+    assert isinstance(out, list) and len(out) >= 1
     first = out[0]
     assert isinstance(first, PredictionResult)
     assert isinstance(first.classifications, dict) and len(first.classifications) >= 1
