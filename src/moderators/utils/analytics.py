@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import threading
 import time
 import uuid
@@ -146,9 +145,6 @@ class Events:
         return uid
 
     def _is_enabled(self) -> bool:
-        # Environment variable override
-        if os.getenv("MODERATORS_DISABLE_ANALYTICS", "").lower() in {"1", "true", "yes"}:
-            return False
         settings = _read_settings()
         return bool(settings.get("sync", True))
 
