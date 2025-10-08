@@ -1,4 +1,4 @@
-from moderators.utils.analytics import events
+from moderators.utils.events import events
 
 def on_predict_start(predictor):
     # Add analytics event
