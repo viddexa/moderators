@@ -32,12 +32,11 @@ jobs:
 
       - name: Run tests in parallel
         run: uv run pytest -n auto --junitxml=pytest-results.xml tests/
-        continue-on-error: true
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: failure()
+        if: always()
         with:
           files: pytest-results.xml
-          comment_mode: always
+          comment_mode: failures
           check_name: Test Results
