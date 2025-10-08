@@ -79,7 +79,8 @@ class AutoModerator:
     @classmethod
     def from_pretrained(
         cls,
-        model_id: str, config: dict | None = None,
+        model_id: str,
+        config: dict | None = None,
         local_files_only: bool = False,
         **kwargs: Any,
     ) -> BaseModerator:
