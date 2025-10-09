@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import importlib
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -41,10 +43,18 @@ class TransformersModerator(BaseModerator):
                 "Install with: uv pip install -e '.[transformers]' or: uv pip install transformers"
             ) from e
 
-        pipeline = getattr(_transformers, "pipeline")
+        had_torch = "torch" in sys.modules
 
         # Ensure a DL framework (pt/tf/flax)
         framework = ensure_dl_framework(auto_install)
+
+        if framework == "pt" and not had_torch and "torch" in sys.modules:
+            try:
+                _transformers = importlib.reload(_transformers)
+            except Exception:
+                pass
+
+        pipeline = getattr(_transformers, "pipeline")
 
         # Ensure Pillow for image tasks
         ensure_pillow_for_task(task, auto_install)
