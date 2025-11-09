@@ -52,7 +52,7 @@ Python API:
 from moderators import AutoModerator
 
 # Load from the Hugging Face Hub (e.g., NSFW image classifier)
-moderator = AutoModerator.from_pretrained("viddexa/nsfw-mini")
+moderator = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
 
 # Run on a local image path
 result = moderator("/path/to/image.jpg")
@@ -61,7 +61,7 @@ print(result)
 
 CLI:
 ```bash
-moderators viddexa/nsfw-mini /path/to/image.jpg
+moderators viddexa/nsfw-detector-mini /path/to/image.jpg
 ```
 
 Text example (sentiment/toxicity):
@@ -103,7 +103,7 @@ Tip (Python):
 from dataclasses import asdict
 from moderators import AutoModerator
 
-moderator = AutoModerator.from_pretrained("viddexa/nsfw-mini")
+moderator = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
 result = moderator("/path/to/image.jpg")
 json_ready = [asdict(r) for r in result]
 print(json_ready)
@@ -148,7 +148,7 @@ The table below places Moderators next to the raw Transformers `pipeline()` usag
 
 
 ## Pick a model
-- From the Hub: pass a model id like `viddexa/nsfw-mini` or any compatible Transformers model.
+- From the Hub: pass a model id like `viddexa/nsfw-detector-mini` or any compatible Transformers model.
 - From disk: pass a local folder that contains a `config.json` next to your weights.
 
 Moderators detects the task and integration from the config when possible, so you don’t have to specify pipelines manually.
@@ -169,7 +169,7 @@ Examples:
   ```
 - Image classification (local image):
   ```bash
-  moderators viddexa/nsfw-mini /path/to/image.jpg
+  moderators viddexa/nsfw-detector-mini /path/to/image.jpg
   ```
 
 Tips:
