@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 
 class _FakeTempDir:

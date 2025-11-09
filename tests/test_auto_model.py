@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 from moderators.integrations.base import PredictionResult
 from moderators.integrations.transformers_moderator import TransformersModerator
 

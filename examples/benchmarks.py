@@ -4,7 +4,7 @@ import argparse
 import statistics
 import time
 
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 
 def summarize(times: list[float]) -> dict[str, float]:

@@ -49,7 +49,7 @@ Run a model in a few lines.
 
 Python API:
 ```python
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 # Load from the Hugging Face Hub (e.g., NSFW image classifier)
 moderator = AutoModerator.from_pretrained("viddexa/nsfw-mini")
@@ -101,7 +101,7 @@ JSON shape (CLI output):
 Tip (Python):
 ```python
 from dataclasses import asdict
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 moderator = AutoModerator.from_pretrained("viddexa/nsfw-mini")
 result = moderator("/path/to/image.jpg")

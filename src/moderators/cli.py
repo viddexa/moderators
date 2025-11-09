@@ -3,7 +3,7 @@ import argparse
 import json
 from dataclasses import asdict, is_dataclass
 
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 
 def _to_jsonable(obj):
