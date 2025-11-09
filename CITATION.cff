@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this package, please consider citing it."
+authors:
+- family-names: "Akyon"
+  given-names: "Fatih Cagatay"
+- family-names: "Kirman"
+  given-names: "Abdullah"
+- family-names: "Bozgan"
+  given-names: "Kerem"
+title: "Moderators: Free and open-source Python library for content moderation"
+version: 0.1.2
+license: Apache-2.0
+repository-code: "https://github.com/viddexa/moderators"
+preferred-citation:
+  type: conference-paper
+  title: "State-of-the-Art in Nudity Classification: A Comparative Analysis"
+  doi: 10.1109/ICASSPW59220.2023.10193621
+  url: https://ieeexplore.ieee.org/abstract/document/10193621/
+  conference:
+    name: "2023 IEEE International Conference on Acoustics, Speech, and Signal Processing Workshops (ICASSPW)"
+  authors:
+  - family-names: "Akyon"
+    given-names: "Fatih Cagatay"
+  - family-names: "Temizel"
+    given-names: "Alptekin"
+  year: 2023
+  start: 1
+  end: 5
+  isbn: 979-8-3503-0261-5
+references:
+- type: article
+  title: "Deep Architectures for Content Moderation and Movie Content Rating"
+  doi: 10.48550/arXiv.2212.04533
+  url: https://arxiv.org/abs/2212.04533
+  authors:
+  - family-names: "Akyon"
+    given-names: "Fatih Cagatay"
+  - family-names: "Temizel"
+    given-names: "Alptekin"
+  year: 2022
+  journal: "arXiv preprint arXiv:2212.04533"
