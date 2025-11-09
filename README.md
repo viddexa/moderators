@@ -127,6 +127,34 @@ Small demos and benchmarking script: `examples/README.md`, `examples/benchmarks.
 - Simple backend switch (API/CLI flag, e.g., `--backend onnx|torch`)
 - Expanded benchmarks: latency, throughput, memory on common tasks
 
+## 📖 Citation
+
+If you use this package in your work, please cite:
+
+```bibtex
+@article{akyon2023nudity,
+  title={State-of-the-Art in Nudity Classification: A Comparative Analysis},
+  author={Akyon, Fatih Cagatay and Temizel, Alptekin},
+  booktitle={2023 IEEE International Conference on Acoustics, Speech, and Signal Processing Workshops (ICASSPW)},
+  pages={1--5},
+  year={2023},
+  organization={IEEE},
+  doi={10.1109/ICASSPW59220.2023.10193621},
+  url={https://ieeexplore.ieee.org/abstract/document/10193621/}
+}
+```
+
+```bibtex
+@article{akyon2022contentmoderation,
+  title={Deep Architectures for Content Moderation and Movie Content Rating},
+  author={Akyon, Fatih Cagatay and Temizel, Alptekin},
+  journal={arXiv preprint arXiv:2212.04533},
+  year={2022},
+  doi={10.48550/arXiv.2212.04533},
+  url={https://arxiv.org/abs/2212.04533}
+}
+```
+
 ## 📄 License
 
 Apache-2.0. See [LICENSE](LICENSE).
