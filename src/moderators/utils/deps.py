@@ -29,7 +29,7 @@ def auto_install(packages: list[str]) -> bool:
 def ensure_transformers(install_fn: Callable[[list[str]], bool]):
     """Ensure 'transformers' is importable; optionally auto-install and retry."""
     try:
-        import transformers as _transformers  # noqa: F401
+        import transformers as _transformers
 
         return _transformers
     except Exception:
@@ -48,7 +48,7 @@ def ensure_dl_framework(install_fn: Callable[[list[str]], bool]) -> str:
     Tries to auto-install torch first.
     """
     try:
-        import torch  # noqa: F401
+        import torch
 
         return "pt"
     except Exception:
@@ -81,7 +81,7 @@ def ensure_pillow_for_task(task: str, install_fn: Callable[[list[str]], bool]) -
     if "image" not in str(task).lower():
         return
     try:
-        import PIL  # noqa: F401
+        import PIL
     except Exception:
         if not install_fn(["Pillow"]):
             raise ImportError("This image task requires Pillow. Install with: uv pip install Pillow")

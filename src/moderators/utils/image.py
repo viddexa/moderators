@@ -44,8 +44,8 @@ def preprocess_image_input(inputs: Any, min_side: int = 0) -> Any:
                 w, h = img.size
                 if w < min_side or h < min_side:
                     scale = max(min_side / w, min_side / h)
-                    new_w = int(round(w * scale))
-                    new_h = int(round(h * scale))
+                    new_w = round(w * scale)
+                    new_h = round(h * scale)
                     resample = getattr(getattr(Image, "Resampling", Image), "BILINEAR")
                     img = img.resize((new_w, new_h), resample)
             except Exception:

@@ -18,10 +18,10 @@ uv add moderators
 
 ## Quickstart (Image, Python)
 ```python
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 # NSFW image classification model from the Hub
-moderator = AutoModerator.from_pretrained("viddexa/nsfw-mini")
+moderator = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
 
 # Run on a local image path
 result = moderator("/path/to/image.jpg")
@@ -30,7 +30,7 @@ print(result)
 
 ## Quickstart (Image, CLI)
 ```bash
-moderators viddexa/nsfw-mini /path/to/image.jpg
+moderators viddexa/nsfw-detector-mini /path/to/image.jpg
 ```
 
 Tip: Add `--local-files-only` to force offline usage if the files are already cached.
@@ -40,10 +40,10 @@ Process a directory of images and print the top result per file.
 
 ```python
 from pathlib import Path
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 images_dir = Path("/path/to/images")
-model = AutoModerator.from_pretrained("viddexa/nsfw-mini")
+model = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
 
 for img_path in images_dir.glob("**/*"):
     if img_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".avif"}:
@@ -56,7 +56,7 @@ You can also load a text classifier.
 
 Python:
 ```python
-from moderators.auto_model import AutoModerator
+from moderators import AutoModerator
 
 text_model = AutoModerator.from_pretrained("distilbert/distilbert-base-uncased-finetuned-sst-2-english")
 print(text_model("I love this!"))
@@ -78,13 +78,13 @@ python examples/benchmarks.py <model_id> <image_path> [--warmup N] [--repeats N]
 Examples:
 ```bash
 # Default backend (auto-detected)
-python examples/benchmarks.py viddexa/nsfw-mini /path/to/image.jpg --warmup 3 --repeats 20
+python examples/benchmarks.py viddexa/nsfw-detector-mini /path/to/image.jpg --warmup 3 --repeats 20
 
 ```
 
 Expected output (sample):
 ```
-Model: viddexa/nsfw-mini
+Model: viddexa/nsfw-detector-mini
 Backend: auto
 Runs: 20, avg: 12.34 ms, p50: 11.80 ms, p90: 14.10 ms
 ```
