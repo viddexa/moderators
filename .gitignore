@@ -214,3 +214,6 @@ uv.lock
 
 # vscode
 .vscode/
+
+# macos
+.DS_Store
