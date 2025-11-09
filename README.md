@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://github.com/viddexa/moderators/releases/download/v0.1.1/logo-v2.jpeg" width="400" alt="Moderators Logo">
 
-# Moderators
+#
 
 [![Moderators PYPI](https://img.shields.io/pypi/v/moderators?color=blue)](https://pypi.org/project/moderators/)
 [![Moderators HuggingFace Space](https://raw.githubusercontent.com/obss/sahi/main/resources/hf_spaces_badge.svg)](https://huggingface.co/spaces/viddexa/moderators)
