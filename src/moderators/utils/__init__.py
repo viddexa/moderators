@@ -4,8 +4,8 @@ from .image import preprocess_image_input
 
 __all__ = [
     "auto_install",
-    "ensure_transformers",
     "ensure_dl_framework",
     "ensure_pillow_for_task",
+    "ensure_transformers",
     "preprocess_image_input",
 ]

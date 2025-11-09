@@ -14,7 +14,7 @@ class _FakeTempDir:
         return self.name
 
     def __exit__(self, exc_type, exc, tb):
-        # Klasörü bilerek silmiyoruz; test sonrasında pytest tmp cleanup zaten yapar.
+        # Intentionally not deleting folder; pytest tmp cleanup handles it after tests.
         return False
 
 
@@ -25,7 +25,7 @@ def write_config(tmp_path: Path, data: dict) -> Path:
 
 
 def test_push_to_hub_offline(tmp_path, monkeypatch, fake_transformers):
-    # Ağ ve ağır bağımlılıkları devre dışı bırak
+    # Disable network and heavy dependencies
     monkeypatch.setenv("MODERATORS_DISABLE_AUTO_INSTALL", "1")
     monkeypatch.setattr(
         "moderators.integrations.transformers_moderator.ensure_dl_framework",
@@ -56,35 +56,35 @@ def test_push_to_hub_offline(tmp_path, monkeypatch, fake_transformers):
             }
             return {"ok": True}
 
-    # Doğru namespace: hub_mixin içindeki HfApi sembolünü patch'le
+    # Correct namespace: patch the HfApi symbol in hub_mixin
     monkeypatch.setattr(
         "huggingface_hub.hub_mixin.HfApi",
         lambda *a, **k: FakeApi(),
         raising=True,
     )
 
-    # Geçici klasörün silinmesini engelle: SoftTemporaryDirectory'yi patch'le
+    # Prevent deletion of temp folder: patch SoftTemporaryDirectory
     monkeypatch.setattr(
         "huggingface_hub.hub_mixin.SoftTemporaryDirectory",
         lambda *a, **k: _FakeTempDir(prefix="moderators_push_"),
         raising=True,
     )
 
-    # Yerel bir TransformersModerator konfigürasyonu ile yükle
+    # Load with a local TransformersModerator configuration
     model_dir = write_config(tmp_path, {"architecture": "TransformersModerator", "task": "text-classification"})
     mod = AutoModerator.from_pretrained(str(model_dir))
 
-    # push_to_hub çağrısı (ağ yok, FakeApi çalışacak)
+    # push_to_hub call (no network, FakeApi will run)
     repo_id = "user/repo-for-tests"
     mod.push_to_hub(repo_id, commit_message="test commit", token="fake-token")
 
-    # upload_folder çağrıldı mı?
+    # Was upload_folder called?
     assert "upload_folder" in calls
     up = calls["upload_folder"]
     folder_path = Path(up["folder_path"])
     assert folder_path.exists()
 
-    # Kaydedilen config.json doğrula
+    # Verify saved config.json
     cfg = json.loads((folder_path / "config.json").read_text(encoding="utf-8"))
     assert cfg.get("architecture") == "TransformersModerator"
     assert cfg.get("task") == "text-classification"
