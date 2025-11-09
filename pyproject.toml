@@ -43,10 +43,10 @@ packages = ["src/moderators"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py39"
 
 [tool.ruff.lint]
-extend-select = ["I", "D", "UP"]
+extend-select = ["F", "I", "D", "UP", "RUF", "FA"]
 ignore = [
     "D100",  # Missing docstring in public module
     "D104",  # Missing docstring in public package
@@ -58,6 +58,9 @@ ignore = [
     "D406",  # Section name should end with a newline
     "D407",  # Missing dashed underline after section
     "D413",  # Missing blank line after last section
+    "RUF001", # Ambiguous Unicode characters in strings
+    "RUF002", # Ambiguous Unicode characters in docstrings
+    "RUF012", # Mutable default values in class attributes
 ]
 
 [tool.ruff.lint.per-file-ignores]
