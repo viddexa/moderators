@@ -21,7 +21,7 @@ uv add moderators
 from moderators import AutoModerator
 
 # NSFW image classification model from the Hub
-moderator = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
+moderator = AutoModerator.from_pretrained("viddexa/nsfw-detection-2-mini")
 
 # Run on a local image path
 result = moderator("/path/to/image.jpg")
@@ -30,7 +30,7 @@ print(result)
 
 ## Quickstart (Image, CLI)
 ```bash
-moderators viddexa/nsfw-detector-mini /path/to/image.jpg
+moderators viddexa/nsfw-detection-2-mini /path/to/image.jpg
 ```
 
 Tip: Add `--local-files-only` to force offline usage if the files are already cached.
@@ -43,7 +43,7 @@ from pathlib import Path
 from moderators import AutoModerator
 
 images_dir = Path("/path/to/images")
-model = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
+model = AutoModerator.from_pretrained("viddexa/nsfw-detection-2-mini")
 
 for img_path in images_dir.glob("**/*"):
     if img_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".avif"}:
@@ -78,13 +78,12 @@ python examples/benchmarks.py <model_id> <image_path> [--warmup N] [--repeats N]
 Examples:
 ```bash
 # Default backend (auto-detected)
-python examples/benchmarks.py viddexa/nsfw-detector-mini /path/to/image.jpg --warmup 3 --repeats 20
-
+python examples/benchmarks.py viddexa/nsfw-detection-2-mini /path/to/image.jpg --warmup 3 --repeats 20
 ```
 
 Expected output (sample):
 ```
-Model: viddexa/nsfw-detector-mini
+Model: viddexa/nsfw-detection-2-mini
 Backend: auto
 Runs: 20, avg: 12.34 ms, p50: 11.80 ms, p90: 14.10 ms
 ```
