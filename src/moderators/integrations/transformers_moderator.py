@@ -163,9 +163,7 @@ class TransformersModerator(BaseModerator):
         return results
 
     def save_pretrained(self, save_directory: str, **kwargs: Any) -> str:
-        """Saves model + tokenizer + (processor / image_processor / feature_extractor) and refreshes/creates a.
-        config.json with required moderator metadata.
-        """
+        """Save model artifacts and update config.json with moderator metadata."""
         out_dir = Path(save_directory)
         out_dir.mkdir(parents=True, exist_ok=True)
 
