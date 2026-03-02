@@ -1,5 +1,9 @@
 import base64
 import json
+import re
+import sys
+import types
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -84,7 +88,76 @@ def test_missing_config_json_raises(tmp_path):
         AutoModerator.from_pretrained(str(tmp_path))
 
 
-def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
+def test_pipeline_framework_not_passed_on_real_transformers():
+    """Verify inspect-based framework detection works with the installed transformers."""
+    import inspect
+
+    from transformers import pipeline
+
+    has_framework = "framework" in inspect.signature(pipeline).parameters
+    # transformers 5.x removed the framework param; 4.x had it
+    # Either way, our code in TransformersModerator.load_model checks this at runtime
+    assert isinstance(has_framework, bool)
+
+
+def test_pipeline_framework_passed_for_v4_signature(tmp_path, monkeypatch):
+    """Verify framework kwarg IS passed when the pipeline function accepts it (v4 behavior)."""
+    captured = {}
+
+    def fake_pipeline_v4(task, model=None, framework=None, **kwargs):
+        captured["framework"] = framework
+        return lambda inputs: {"label": "OK", "score": 0.9}
+
+    mod = types.ModuleType("transformers")
+    mod.pipeline = fake_pipeline_v4
+    monkeypatch.setitem(sys.modules, "transformers", mod)
+
+    model_dir = write_config(tmp_path, {"architecture": "TransformersModerator", "task": "text-classification"})
+    m = AutoModerator.from_pretrained(str(model_dir))
+    out = m("hello")
+
+    assert isinstance(out, list) and len(out) == 1
+    assert captured.get("framework") is not None, "framework should be passed to v4-style pipeline"
+
+
+def test_pipeline_framework_omitted_for_v5_signature(tmp_path, monkeypatch):
+    """Verify framework kwarg is NOT passed when the pipeline rejects it (v5 behavior)."""
+
+    def fake_pipeline_v5(task, model=None, **kwargs):
+        if "framework" in kwargs:
+            raise TypeError("unexpected keyword argument 'framework'")
+        return lambda inputs: {"label": "OK", "score": 0.9}
+
+    mod = types.ModuleType("transformers")
+    mod.pipeline = fake_pipeline_v5
+    monkeypatch.setitem(sys.modules, "transformers", mod)
+
+    model_dir = write_config(tmp_path, {"architecture": "TransformersModerator", "task": "text-classification"})
+    m = AutoModerator.from_pretrained(str(model_dir))
+    out = m("hello")
+
+    assert isinstance(out, list) and len(out) == 1
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_HF_URLS = sorted(
+    {
+        url
+        for md in [*_REPO_ROOT.glob("*.md"), *_REPO_ROOT.glob("docs/*.md"), *_REPO_ROOT.glob("examples/*.md")]
+        for url in re.findall(r"https://huggingface\.co/[\w-]+/[\w-]+", md.read_text())
+    }
+)
+
+
+@pytest.mark.parametrize("url", _HF_URLS)
+def test_hf_model_links_valid(url):
+    """Verify HuggingFace URLs found in markdown docs are not broken."""
+    req = urllib.request.Request(url, method="HEAD")
+    resp = urllib.request.urlopen(req, timeout=10)
+    assert resp.status == 200
+
+
+def test_hf_model_viddexa_nsfw_detection_integration_online(tmp_path):
     # If HF Hub is offline, skip
     try:
         from huggingface_hub.utils import is_offline_mode
@@ -100,7 +173,7 @@ def test_hf_model_falconsai_nsfw_image_detection_integration_online(tmp_path):
     if str(os.environ.get("MODERATORS_DISABLE_AUTO_INSTALL", "")).lower() in ("1", "true", "yes"):
         pytest.skip("Auto-install disabled; skipping online integration test.")
 
-    model_id = "Falconsai/nsfw_image_detection"
+    model_id = "viddexa/nsfw-detection-2-mini"
     mod = AutoModerator.from_pretrained(model_id, local_files_only=False)
     assert isinstance(mod, TransformersModerator)
 
