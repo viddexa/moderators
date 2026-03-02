@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import json
 import sys
 from pathlib import Path
@@ -21,8 +22,7 @@ class TransformersModerator(BaseModerator):
     """Moderator implementation using HuggingFace Transformers."""
 
     def load_model(self) -> None:
-        """
-        Build a transformers pipeline deterministically:
+        """Build a transformers pipeline deterministically:
         - Validate task.
         - Ensure deps (transformers, DL framework, Pillow for image tasks).
         - Try AutoProcessor (if local `preprocessor_config.json` exists).
@@ -119,10 +119,13 @@ class TransformersModerator(BaseModerator):
             if tokenizer is not None:
                 pipe_kwargs["tokenizer"] = tokenizer
 
+        # Pass framework for transformers 4.x; omit for 5.x+ where it was removed
+        if "framework" in inspect.signature(pipeline).parameters:
+            pipe_kwargs["framework"] = framework
+
         self._pipe = pipeline(
             task,
             model=model_id,
-            framework=framework,
             **pipe_kwargs,
         )
 
@@ -160,7 +163,7 @@ class TransformersModerator(BaseModerator):
         return results
 
     def save_pretrained(self, save_directory: str, **kwargs: Any) -> str:
-        """Saves model + tokenizer + (processor / image_processor / feature_extractor) and refreshes/creates a
+        """Saves model + tokenizer + (processor / image_processor / feature_extractor) and refreshes/creates a.
         config.json with required moderator metadata.
         """
         out_dir = Path(save_directory)
