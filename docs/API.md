@@ -12,9 +12,9 @@ Results are returned as a list of `PredictionResult` dataclass instances:
 [
   PredictionResult(
     source_path='',
-    classifications={'NSFW': 0.9821},
+    classifications={'porn': 0.9821},
     detections=[],
-    raw_output={'label': 'NSFW', 'score': 0.9821}
+    raw_output={'label': 'porn', 'score': 0.9821}
   ),
   ...
 ]
@@ -28,9 +28,9 @@ The CLI outputs the same structure as JSON:
 [
     {
         "source_path": "",
-        "classifications": { "NSFW": 0.9821 },
+        "classifications": { "porn": 0.9821 },
         "detections": [],
-        "raw_output": { "label": "NSFW", "score": 0.9821 }
+        "raw_output": { "label": "porn", "score": 0.9821 }
     }
 ]
 ```
@@ -43,7 +43,7 @@ Use `dataclasses.asdict()` to convert Python results to JSON-ready dictionaries:
 from dataclasses import asdict
 from moderators import AutoModerator
 
-moderator = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
+moderator = AutoModerator.from_pretrained("viddexa/nsfw-detection-2-mini")
 result = moderator("/path/to/image.jpg")
 json_ready = [asdict(r) for r in result]
 print(json_ready)
@@ -65,7 +65,7 @@ print(json_ready)
 ```python
 from moderators import AutoModerator
 
-moderator = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
+moderator = AutoModerator.from_pretrained("viddexa/nsfw-detection-2-mini")
 ```
 
 **From local directory:**
@@ -105,7 +105,7 @@ Supported tasks:
 
 ## Model Selection
 
-- **From the Hub**: Pass a model ID like `viddexa/nsfw-detector-mini` or any compatible Transformers model
+- **From the Hub**: Pass a model ID like `viddexa/nsfw-detection-2-mini` or any compatible Transformers model
 - **From disk**: Pass a local folder that contains a `config.json` next to your model weights
 
 The system automatically infers the task and integration from the config when possible.

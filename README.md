@@ -21,16 +21,15 @@ Run open‑source content moderation models (NSFW, nudity, etc.) with one line �
 
 ## 🚀 Performance
 
-NSFW image detection performance of `nsfw-detector-mini` compared with [Azure Content Safety AI](https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety) and [Falconsai](https://huggingface.co/Falconsai/nsfw_image_detection).
+NSFW image detection performance on the LSPD test set. Models with `nsfw-detection-2` prefix support 5-class classification (safe, porn, hentai, drawing, sexy). **F_macro** is the macro-averaged F1 score across all classes.
 
-**F_safe** and **F_nsfw** below are class-wise F1 scores for safe and nsfw classes, respectively. Results show that `nsfw-detector-mini` performs better than Falconsai and Azure AI with fewer parameters.
-
-| Model                                                                                |     F_safe |     F_nsfw |  Params |
-| ------------------------------------------------------------------------------------ | ---------: | ---------: | ------: |
-| [nsfw-detector-nano](https://huggingface.co/viddexa/nsfw-detection-nano)             |     96.91% |     96.87% |      4M |
-| **[nsfw-detector-mini](https://huggingface.co/viddexa/nsfw-detector-mini)**          | **97.90%** | **97.89%** | **17M** |
-| [Azure AI](https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety) |     96.79% |     96.57% |     N/A |
-| [Falconsai](https://huggingface.co/Falconsai/nsfw_image_detection)                   |     89.52% |     89.32% |     85M |
+| Model | F_macro | F_safe | F_porn | F_hentai | F_drawing | F_sexy | Params |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [nsfw-detection-2-nano](https://huggingface.co/viddexa/nsfw-detection-2-nano) | 93.00% | 96.82% | 96.34% | 93.43% | 93.24% | 85.15% | 4M |
+| **[nsfw-detection-2-mini](https://huggingface.co/viddexa/nsfw-detection-2-mini)** | **96.09%** | **98.59%** | **98.05%** | **96.06%** | **96.83%** | **90.92%** | **17M** |
+| [nsfw-detection-1-mini](https://huggingface.co/viddexa/nsfw-detection-mini) | N/A | 97.90% | N/A | N/A | N/A | N/A | 17M |
+| [Azure AI](https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety) | N/A | 96.79% | N/A | N/A | N/A | N/A | N/A |
+| [Falconsai](https://huggingface.co/Falconsai/nsfw_image_detection) | N/A | 89.52% | N/A | N/A | N/A | N/A | 85M |
 
 ## 📦 Installation
 
@@ -48,7 +47,7 @@ For detailed installation options, see the [Installation Guide](docs/INSTALLATIO
 from moderators import AutoModerator
 
 # Load from the Hugging Face Hub (e.g., NSFW image classifier)
-moderator = AutoModerator.from_pretrained("viddexa/nsfw-detector-mini")
+moderator = AutoModerator.from_pretrained("viddexa/nsfw-detection-2-mini")
 
 # Run on a local image path
 result = moderator("/path/to/image.jpg")
@@ -59,7 +58,7 @@ print(result)
 
 ```bash
 # Image classification
-moderators viddexa/nsfw-detector-mini /path/to/image.jpg
+moderators viddexa/nsfw-detection-2-mini /path/to/image.jpg
 
 # Text classification
 moderators distilbert/distilbert-base-uncased-finetuned-sst-2-english "I love this!"
@@ -75,15 +74,21 @@ Moderators normalized JSON output:
 [
   {
     "source_path": "",
-    "classifications": { "safe": 0.9999891519546509 },
+    "classifications": { "safe": 0.9998 },
     "detections": [],
-    "raw_output": { "label": "safe", "score": 0.9999891519546509 }
+    "raw_output": { "label": "safe", "score": 0.9998 }
   },
   {
     "source_path": "",
-    "classifications": { "nsfw": 0.000010843970812857151 },
+    "classifications": { "drawing": 0.0001 },
     "detections": [],
-    "raw_output": { "label": "nsfw", "score": 0.000010843970812857151 }
+    "raw_output": { "label": "drawing", "score": 0.0001 }
+  },
+  {
+    "source_path": "",
+    "classifications": { "sexy": 0.0001 },
+    "detections": [],
+    "raw_output": { "label": "sexy", "score": 0.0001 }
   }
 ]
 ```
@@ -103,7 +108,7 @@ Moderators normalized JSON output:
 
 ## 🎯 Pick a Model
 
-- **From the Hub**: Pass a model ID like `viddexa/nsfw-detector-mini` or any compatible Transformers model
+- **From the Hub**: Pass a model ID like `viddexa/nsfw-detection-2-mini` or any compatible Transformers model
 - **From disk**: Pass a local folder that contains a `config.json` next to your weights
 
 Moderators detects the task and integration from the config when possible, so you don't have to specify pipelines manually.

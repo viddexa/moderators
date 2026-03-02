@@ -65,7 +65,7 @@
 **Suggestions**:
 
 - Use GPU acceleration (see "GPU not used" above)
-- Try smaller models (e.g., `nsfw-detector-nano` instead of larger variants)
+- Try smaller models (e.g., `nsfw-detection-2-nano` instead of larger variants)
 - Consider batch processing for multiple inputs
 - Check if auto-installation is downloading dependencies (first run only)
 
